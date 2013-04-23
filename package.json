@@ -1,0 +1,21 @@
+{
+  "name": "rpi-ferment-frontend",
+  "description": "frontend web application for the rpi-ferment package",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "express": "3.2.0",
+    "winston": "0.7.1",
+    "mongoose": "3.6.7",
+    "connect-mongo": "0.3.2",
+    "handlebars": "1.0.10",
+    "hbs": "2.1.0",
+    "socket.io": "0.9.14"
+  },
+  "devDependencies": {
+  	"coffee-script": "1.6.2",
+    "uglify-js": "1.2.6",
+    "less": "1.3.3",
+    "recess": "1.1.6"
+  }
+}
