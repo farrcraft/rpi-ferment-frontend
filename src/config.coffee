@@ -8,7 +8,7 @@ logger        = require('./services/logger.js').logger
 
 # route files
 dashboardRouter   = require './routes/dashboard.js'
-#profileRouter     = require './routes/profile.js'
+profileRouter     = require './routes/profile.js'
 
 mongoose      = require 'mongoose'
 hbs           = require 'hbs'
@@ -40,7 +40,7 @@ exports.configure = (Express, app) ->
     #app.use app.router
     # routes
     dashboardRouter.routes app
-    #profileRouter.routes app
+    profileRouter.routes app
 
     # use handlebars for view templates
     app.set "view engine", "hbs"
