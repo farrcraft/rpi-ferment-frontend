@@ -1,0 +1,23 @@
+<div class="row">
+	<div class="span9">
+		<h3>{{fermenterName}}</h3>
+		<div id="{{fermenterId}}_rgn">
+		</div>
+		<h4>Fermenting: {{profileName}}</h4>
+		<br />
+		<div>
+			<div id="heaterLight" class="red"></div> <strong>Heater {{heaterState}}</strong> <a id="heaterOverride" href="#">[override]</a>
+		</div>
+		<br />
+		<a id="fermenterHistory" class="history" href="#">History...</a>
+	</div>
+</div>
+
+<p>
+	Viewing Last <strong>{{sampleRate}}H</strong> 
+	[
+	{{#each sampleOptions}}
+		<a id="sampleRate{{this}}" href="/?sample={{this}}">{{this}}H</a> 
+	{{/each}}
+	]
+</p>

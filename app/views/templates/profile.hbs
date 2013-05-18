@@ -1,0 +1,15 @@
+<tr>
+	<td>{{profile.name}}</td>
+	<td class="edit">edit</td>
+	<td class="delete">delete</td>
+</tr>
+<tr>
+	<td colspan="3">Steps <button class="add-step" class="btn btn-mini">Add Step</button></td>
+	<td>
+		<ol>
+			{{#each profile.steps}}
+				<li>{{this.name}}</li>
+			{{/each}}
+		</ol>
+	<td>
+</tr>

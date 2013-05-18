@@ -1,0 +1,39 @@
+<div id="profile-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="profileModalLabel" aria-hidden="true">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		<h3 id="profileModalLabel">Fermentation Profile</h3>
+	</div>
+	<div class="modal-body">
+		<form class="form-horizontal" id="profile-form">
+			<input type="hidden" id="profile-input-id" value="">
+			<div class="control-group">
+				<label class="control-label" for="profile-input-name">Name</label>
+				<div class="controls">
+					<input type="text" id="profile-input-name" placeholder="Name" value="{{profileName}}">
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="profile-input-sensor">Sensor</label>
+				<div class="controls">
+					<select id="profile-input-sensor">
+						<option value=""></option>
+					</select>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="profile-input-mode">Control Mode</label>
+				<div class="controls">
+					<select id="profile-input-mode">
+						<option value="none">None</option>
+						<option value="pid">PID</option>
+						<option value="manual">Manual</option>
+					</select>
+				</div>
+			</div>
+		</form>
+	</div>
+	<div class="modal-footer">
+		<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+		<button id="save-profile" class="btn btn-primary">Save changes</button>
+	</div>
+</div>

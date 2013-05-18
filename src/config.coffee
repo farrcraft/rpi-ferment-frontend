@@ -3,11 +3,12 @@
 
 express       = require 'express'
 connectMongo  = require 'connect-mongo'
-MongoStore    = connectMongo(express)
+MongoStore    = connectMongo express
 logger        = require('./services/logger.js').logger
 
 # route files
 dashboardRouter   = require './routes/dashboard.js'
+#profileRouter     = require './routes/profile.js'
 
 mongoose      = require 'mongoose'
 hbs           = require 'hbs'
@@ -17,7 +18,7 @@ exports.configure = (Express, app) ->
   app.configure ->
     logger.info 'Configuring application...'
 
-    # Log responses to the terminal using Common Log Format.)
+    # Log responses to the terminal using Common Log Format.
     app.use Express.logger { buffer: true }
     app.use Express.methodOverride()
     app.use Express.bodyParser()
@@ -32,12 +33,14 @@ exports.configure = (Express, app) ->
         db: 'brewtheory'
         })
     })
+
     # Add a special header with timing information.
     app.use Express.responseTime()
     #app.router can cause problems when using everyauth so we don't explicitly use it
     #app.use app.router
     # routes
-    dashboardRouter.routes(app)
+    dashboardRouter.routes app
+    #profileRouter.routes app
 
     # use handlebars for view templates
     app.set "view engine", "hbs"
