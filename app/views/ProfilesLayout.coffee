@@ -10,10 +10,9 @@ module.exports = class ProfilesLayout extends Backbone.Marionette.Layout
 
 	initialize: () =>
 			collection = new ProfileCollection()
-			view = new ProfileCollectionView { collection: collection }
 			collection.fetch
 				add: true
-				success: () ->
-					profiles.each (item) -> view.appendItem item
-			@profiles.show view
+				success: () =>
+					view = new ProfileCollectionView { collection: collection }
+					@profiles.show view
 

@@ -1445,8 +1445,25 @@ window.require.register("views/ProfileModalView", function(exports, require, mod
 });
 window.require.register("views/ProfileView", function(exports, require, module) {
   (function() {
+    var ProfileView, template,
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
+    template = require('./templates/profile');
 
+    module.exports = ProfileView = (function(_super) {
+
+      __extends(ProfileView, _super);
+
+      function ProfileView() {
+        ProfileView.__super__.constructor.apply(this, arguments);
+      }
+
+      ProfileView.prototype.template = template;
+
+      return ProfileView;
+
+    })(Backbone.Marionette.ItemView);
 
   }).call(this);
   
@@ -1480,20 +1497,19 @@ window.require.register("views/ProfilesLayout", function(exports, require, modul
       };
 
       ProfilesLayout.prototype.initialize = function() {
-        var collection, view;
+        var collection,
+          _this = this;
         collection = new ProfileCollection();
-        view = new ProfileCollectionView({
-          collection: collection
-        });
-        collection.fetch({
+        return collection.fetch({
           add: true,
           success: function() {
-            return profiles.each(function(item) {
-              return view.appendItem(item);
+            var view;
+            view = new ProfileCollectionView({
+              collection: collection
             });
+            return _this.profiles.show(view);
           }
         });
-        return this.profiles.show(view);
       };
 
       return ProfilesLayout;
@@ -1633,15 +1649,13 @@ window.require.register("views/templates/profile", function(exports, require, mo
     return buffer;}
 
     buffer += "<tr>\n	<td>";
-    foundHelper = helpers.profile;
-    stack1 = foundHelper || depth0.profile;
-    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.name);
+    foundHelper = helpers.name;
+    stack1 = foundHelper || depth0.name;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "profile.name", { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "name", { hash: {} }); }
     buffer += escapeExpression(stack1) + "</td>\n	<td class=\"edit\">edit</td>\n	<td class=\"delete\">delete</td>\n</tr>\n<tr>\n	<td colspan=\"3\">Steps <button class=\"add-step\" class=\"btn btn-mini\">Add Step</button></td>\n	<td>\n		<ol>\n			";
-    foundHelper = helpers.profile;
-    stack1 = foundHelper || depth0.profile;
-    stack1 = (stack1 === null || stack1 === undefined || stack1 === false ? stack1 : stack1.steps);
+    foundHelper = helpers.steps;
+    stack1 = foundHelper || depth0.steps;
     stack2 = helpers.each;
     tmp1 = self.program(1, program1, data);
     tmp1.hash = {};
