@@ -81,7 +81,7 @@
 
 window.require.register("application", function(exports, require, module) {
   (function() {
-    var Application, Graph,
+    var Application, Graph, ProfileController,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
@@ -89,6 +89,8 @@ window.require.register("application", function(exports, require, module) {
     require('lib/view_helper');
 
     Graph = require('lib/graph');
+
+    ProfileController = require('controllers/profile');
 
     Application = (function(_super) {
 
@@ -105,6 +107,10 @@ window.require.register("application", function(exports, require, module) {
         var _this = this;
         this.graph_ = new Graph();
         this.on("initialize:after", function(options) {
+          options = {
+            application: _this
+          };
+          _this.controller_ = new ProfileController(options);
           Backbone.history.start();
           return typeof Object.freeze === "function" ? Object.freeze(_this) : void 0;
         });
@@ -113,8 +119,7 @@ window.require.register("application", function(exports, require, module) {
           var AppLayout;
           AppLayout = require('views/AppLayout');
           _this.layout = new AppLayout();
-          _this.layout.render();
-          return console.log('layout rendered');
+          return _this.layout.render();
         });
         this.addInitializer(function(options) {
           var Router;
@@ -129,6 +134,45 @@ window.require.register("application", function(exports, require, module) {
     })(Backbone.Marionette.Application);
 
     module.exports = new Application();
+
+  }).call(this);
+  
+});
+window.require.register("controllers/profile", function(exports, require, module) {
+  (function() {
+    var ProfileController, ProfileModalView,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    ProfileModalView = require('views/ProfileModalView');
+
+    module.exports = ProfileController = (function(_super) {
+
+      __extends(ProfileController, _super);
+
+      function ProfileController() {
+        this.initialize = __bind(this.initialize, this);
+        ProfileController.__super__.constructor.apply(this, arguments);
+      }
+
+      ProfileController.prototype.initialize = function(options) {
+        var _this = this;
+        this.app = options.application;
+        $('#new-profile-nav').on('click', function() {
+          _this.app.vent.trigger('Nav:NewProfile');
+          return false;
+        });
+        return this.app.vent.on('Nav:NewProfile', function() {
+          var modal;
+          modal = new ProfileModalView();
+          return _this.app.layout.modal.show(modal);
+        });
+      };
+
+      return ProfileController;
+
+    })(Backbone.Marionette.Controller);
 
   }).call(this);
   
@@ -1148,11 +1192,15 @@ window.require.register("models/profileModel", function(exports, require, module
 });
 window.require.register("views/AppLayout", function(exports, require, module) {
   (function() {
-    var AppLayout, application,
+    var AppLayout, ModalRegion, application, template,
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
     application = require('application');
+
+    ModalRegion = require('views/ModalRegion');
+
+    template = require('views/templates/appLayout');
 
     module.exports = AppLayout = (function(_super) {
 
@@ -1162,13 +1210,14 @@ window.require.register("views/AppLayout", function(exports, require, module) {
         AppLayout.__super__.constructor.apply(this, arguments);
       }
 
-      AppLayout.prototype.template = require('views/templates/appLayout');
+      AppLayout.prototype.template = template;
 
       AppLayout.prototype.el = "body";
 
       AppLayout.prototype.regions = {
         nav: "#nav",
-        content: "#content"
+        content: "#content",
+        modal: ModalRegion
       };
 
       return AppLayout;
@@ -1389,6 +1438,51 @@ window.require.register("views/HomeView", function(exports, require, module) {
   }).call(this);
   
 });
+window.require.register("views/ModalRegion", function(exports, require, module) {
+  (function() {
+    var ModalRegion,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    module.exports = ModalRegion = (function(_super) {
+
+      __extends(ModalRegion, _super);
+
+      ModalRegion.prototype.el = '#modal';
+
+      function ModalRegion() {
+        this.hideModal = __bind(this.hideModal, this);
+        this.showModal = __bind(this.showModal, this);
+        this.getEl = __bind(this.getEl, this);      this.on('show', this.showModal, this);
+      }
+
+      ModalRegion.prototype.getEl = function(selector) {
+        var $el;
+        $el = $(selector);
+        $el.on('hidden', this.close);
+        return $el;
+      };
+
+      ModalRegion.prototype.showModal = function(view) {
+        view.on('close', this.hideModal, this);
+        this.$el.modal('show');
+        this.$el.css('margin-top', (this.$el.outerHeight() / 2) * -1);
+        this.$el.css('margin-left', (this.$el.outerWidth() / 2) * -1);
+        return this.$el.css('top', '50%');
+      };
+
+      ModalRegion.prototype.hideModal = function() {
+        return this.$el.modal('hide');
+      };
+
+      return ModalRegion;
+
+    })(Backbone.Marionette.Region);
+
+  }).call(this);
+  
+});
 window.require.register("views/ProfileCollectionView", function(exports, require, module) {
   (function() {
     var ProfileCollectionView, ProfileView,
@@ -1445,11 +1539,17 @@ window.require.register("views/ProfileModalView", function(exports, require, mod
 });
 window.require.register("views/ProfileView", function(exports, require, module) {
   (function() {
-    var ProfileView, template,
+    var FermentationStepModalView, ProfileModalView, ProfileView, application, template,
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
+    application = require('application');
+
     template = require('./templates/profile');
+
+    ProfileModalView = require('views/ProfileModalView');
+
+    FermentationStepModalView = require('views/FermentationStepModalView');
 
     module.exports = ProfileView = (function(_super) {
 
@@ -1460,6 +1560,16 @@ window.require.register("views/ProfileView", function(exports, require, module) 
       }
 
       ProfileView.prototype.template = template;
+
+      ProfileView.prototype.events = {
+        'click .add-step': 'addStep'
+      };
+
+      ProfileView.prototype.addStep = function(e) {
+        var modal;
+        modal = new FermentationStepModalView();
+        return application.layout.modal.show(modal);
+      };
 
       return ProfileView;
 
@@ -1525,7 +1635,7 @@ window.require.register("views/templates/appLayout", function(exports, require, 
     var foundHelper, self=this;
 
 
-    return "<div id=\"nav\" class=\"navbar navbar-fixed-top\">\n	<div class=\"navbar-inner\">\n		<div class=\"container\">\n			<a class=\"brand\" href=\"#\">RPi Ferment</a>\n			<ul class=\"nav\">\n				<li><a id=\"profiles-nav\" href=\"#profiles\">Profiles</a></li>\n			</ul>\n		</div>\n	</div>\n</div>\n\n<div id=\"content\" class=\"container\"></div>\n";});
+    return "<div id=\"nav\" class=\"navbar navbar-fixed-top\">\n	<div class=\"navbar-inner\">\n		<div class=\"container\">\n			<a class=\"brand\" href=\"#\">RPi Ferment</a>\n			<ul class=\"nav\">\n				<li><a id=\"profiles-nav\" href=\"#profiles\">Profiles</a></li>\n				<li><a id=\"new-profile-nav\" href=\"#\">New Profile</a></li>\n			</ul>\n		</div>\n	</div>\n</div>\n\n<div id=\"content\" class=\"container\"></div>\n<div id=\"modal\" class=\"modal hide fade\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"profileModalLabel\" aria-hidden=\"true\">\n</div>";});
 });
 window.require.register("views/templates/fermentationStepModal", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -1533,7 +1643,7 @@ window.require.register("views/templates/fermentationStepModal", function(export
     var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
 
-    buffer += "<div id=\"step-modal\" class=\"modal hide fade\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"stepModalLabel\" aria-hidden=\"true\">\n	<div class=\"modal-header\">\n		<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">×</button>\n		<h3 id=\"stepModalLabel\">Fermentation Step</h3>\n	</div>\n	<div class=\"modal-body\">\n		<form class=\"form-horizontal\" id=\"step-form\">\n			<input type=\"hidden\" name=\"step-input-id\" value=\"\">\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"step-input-name\">Name</label>\n				<div class=\"controls\">\n					<input type=\"text\" id=\"step-input-name\" placeholder=\"Name\" value=\"";
+    buffer += "<div id=\"step-modal\">\n	<div class=\"modal-header\">\n		<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">×</button>\n		<h3 id=\"stepModalLabel\">Fermentation Step</h3>\n	</div>\n	<div class=\"modal-body\">\n		<form class=\"form-horizontal\" id=\"step-form\">\n			<input type=\"hidden\" name=\"step-input-id\" value=\"\">\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"step-input-name\">Name</label>\n				<div class=\"controls\">\n					<input type=\"text\" id=\"step-input-name\" placeholder=\"Name\" value=\"";
     foundHelper = helpers.stepName;
     stack1 = foundHelper || depth0.stepName;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
@@ -1672,7 +1782,7 @@ window.require.register("views/templates/profileModal", function(exports, requir
     var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
 
-    buffer += "<div id=\"profile-modal\" class=\"modal hide fade\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"profileModalLabel\" aria-hidden=\"true\">\n	<div class=\"modal-header\">\n		<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">×</button>\n		<h3 id=\"profileModalLabel\">Fermentation Profile</h3>\n	</div>\n	<div class=\"modal-body\">\n		<form class=\"form-horizontal\" id=\"profile-form\">\n			<input type=\"hidden\" id=\"profile-input-id\" value=\"\">\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"profile-input-name\">Name</label>\n				<div class=\"controls\">\n					<input type=\"text\" id=\"profile-input-name\" placeholder=\"Name\" value=\"";
+    buffer += "<div id=\"profile-modal\">\n	<div class=\"modal-header\">\n		<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">×</button>\n		<h3 id=\"profileModalLabel\">Fermentation Profile</h3>\n	</div>\n	<div class=\"modal-body\">\n		<form class=\"form-horizontal\" id=\"profile-form\">\n			<input type=\"hidden\" id=\"profile-input-id\" value=\"\">\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"profile-input-name\">Name</label>\n				<div class=\"controls\">\n					<input type=\"text\" id=\"profile-input-name\" placeholder=\"Name\" value=\"";
     foundHelper = helpers.profileName;
     stack1 = foundHelper || depth0.profileName;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }

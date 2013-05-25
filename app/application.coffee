@@ -1,5 +1,6 @@
 require 'lib/view_helper'
 Graph = require 'lib/graph'
+ProfileController = require 'controllers/profile'
 
 class Application extends Backbone.Marionette.Application
     graph_: {} 
@@ -8,6 +9,10 @@ class Application extends Backbone.Marionette.Application
         @graph_ = new Graph()
 
         @on("initialize:after", (options) =>
+            options = 
+                application: @
+            @controller_ = new ProfileController(options)
+
             Backbone.history.start();
             # Freeze the object
             Object.freeze? this
@@ -21,7 +26,6 @@ class Application extends Backbone.Marionette.Application
             AppLayout = require 'views/AppLayout'
             @layout = new AppLayout()
             @layout.render()
-            console.log 'layout rendered'
         )
 
         @addInitializer((options) =>
