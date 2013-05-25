@@ -12,7 +12,9 @@ module.exports = class ProfileModalView extends Backbone.Marionette.ItemView
 
 	saveProfile: (e) =>
 		name = $('#profile-input-name').val()
+		controlMode = $('#profile-input-mode').val()
 		@model.set 'name', name
+		@model.set 'control_mode', controlMode
 		@model.once 'sync', () => 
 			@app.vent.trigger 'Profile:Modified'
 		@model.save()

@@ -1038,6 +1038,15 @@ window.require.register("lib/view_helper", function(exports, require, module) {
       return options.hash[val];
     });
 
+    Handlebars.registerHelper('select', function(value, options) {
+      var $el;
+      $el = $('<select />').html(options.fn(this));
+      $el.find('[value=' + value + ']').attr({
+        'selected': 'selected'
+      });
+      return $el.html();
+    });
+
   }).call(this);
   
 });
@@ -1517,7 +1526,6 @@ window.require.register("views/ProfileCollectionView", function(exports, require
       ProfileCollectionView.prototype.initialize = function() {
         var _this = this;
         return application.vent.on('Profile:Modified', function() {
-          console.log('modified vented');
           return _this.collection.fetch({
             add: true,
             success: function() {
@@ -1568,16 +1576,17 @@ window.require.register("views/ProfileModalView", function(exports, require, mod
       };
 
       ProfileModalView.prototype.saveProfile = function(e) {
-        var name,
+        var controlMode, name,
           _this = this;
         name = $('#profile-input-name').val();
+        controlMode = $('#profile-input-mode').val();
         this.model.set('name', name);
+        this.model.set('control_mode', controlMode);
         this.model.once('sync', function() {
           return _this.app.vent.trigger('Profile:Modified');
         });
         this.model.save();
-        this.app.layout.modal.close();
-        return console.log('trigger modify');
+        return this.app.layout.modal.close();
       };
 
       return ProfileModalView;
@@ -1633,14 +1642,16 @@ window.require.register("views/ProfileView", function(exports, require, module) 
           application: application
         };
         modal = new ProfileModalView(options);
-        return application.layout.modal.show(modal);
+        application.layout.modal.show(modal);
+        return false;
       };
 
       ProfileView.prototype.deleteProfile = function(e) {
         this.model.once('sync', function() {
           return application.vent.trigger('Profile:Modified');
         });
-        return this.model.destroy();
+        this.model.destroy();
+        return false;
       };
 
       return ProfileView;
@@ -1835,7 +1846,7 @@ window.require.register("views/templates/profile", function(exports, require, mo
     stack1 = foundHelper || depth0.name;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "name", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</td>\n	<td class=\"edit\">edit</td>\n	<td class=\"delete\">delete</td>\n</tr>\n<tr>\n	<td colspan=\"3\">Steps <button class=\"add-step\" class=\"btn btn-mini\">Add Step</button></td>\n	<td>\n		<ol>\n			";
+    buffer += escapeExpression(stack1) + "</td>\n	<td><a class=\"edit\" href=\"#\">edit</a></td>\n	<td><a class=\"delete\" href=\"#\">delete</a></td>\n</tr>\n<tr>\n	<td colspan=\"3\">Steps <button class=\"add-step\" class=\"btn btn-mini\">Add Step</button></td>\n	<td>\n		<ol>\n			";
     foundHelper = helpers.steps;
     stack1 = foundHelper || depth0.steps;
     stack2 = helpers.each;
@@ -1851,15 +1862,31 @@ window.require.register("views/templates/profile", function(exports, require, mo
 window.require.register("views/templates/profileModal", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
-    var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
+    var buffer = "", stack1, stack2, foundHelper, tmp1, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression, blockHelperMissing=helpers.blockHelperMissing;
 
+  function program1(depth0,data) {
+    
+    
+    return "\n						<option value=\"none\">None</option>\n						<option value=\"pid\">PID</option>\n						<option value=\"manual\">Manual</option>\n					";}
 
     buffer += "<div id=\"profile-modal\">\n	<div class=\"modal-header\">\n		<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">×</button>\n		<h3 id=\"profileModalLabel\">Fermentation Profile</h3>\n	</div>\n	<div class=\"modal-body\">\n		<form class=\"form-horizontal\" id=\"profile-form\">\n			<input type=\"hidden\" id=\"profile-input-id\" value=\"\">\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"profile-input-name\">Name</label>\n				<div class=\"controls\">\n					<input type=\"text\" id=\"profile-input-name\" placeholder=\"Name\" value=\"";
     foundHelper = helpers.name;
     stack1 = foundHelper || depth0.name;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "name", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "\">\n				</div>\n			</div>\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"profile-input-sensor\">Sensor</label>\n				<div class=\"controls\">\n					<select id=\"profile-input-sensor\">\n						<option value=\"\"></option>\n					</select>\n				</div>\n			</div>\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"profile-input-mode\">Control Mode</label>\n				<div class=\"controls\">\n					<select id=\"profile-input-mode\">\n						<option value=\"none\">None</option>\n						<option value=\"pid\">PID</option>\n						<option value=\"manual\">Manual</option>\n					</select>\n				</div>\n			</div>\n		</form>\n	</div>\n	<div class=\"modal-footer\">\n		<button class=\"btn\" data-dismiss=\"modal\" aria-hidden=\"true\">Close</button>\n		<button id=\"save-profile\" class=\"btn btn-primary\">Save changes</button>\n	</div>\n</div>";
+    buffer += escapeExpression(stack1) + "\">\n				</div>\n			</div>\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"profile-input-sensor\">Sensor</label>\n				<div class=\"controls\">\n					<select id=\"profile-input-sensor\">\n						<option value=\"\"></option>\n					</select>\n				</div>\n			</div>\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"profile-input-mode\">Control Mode</label>\n				<div class=\"controls\">\n					<select id=\"profile-input-mode\">\n					";
+    foundHelper = helpers.control_mode;
+    stack1 = foundHelper || depth0.control_mode;
+    foundHelper = helpers.select;
+    stack2 = foundHelper || depth0.select;
+    tmp1 = self.program(1, program1, data);
+    tmp1.hash = {};
+    tmp1.fn = tmp1;
+    tmp1.inverse = self.noop;
+    if(foundHelper && typeof stack2 === functionType) { stack1 = stack2.call(depth0, stack1, tmp1); }
+    else { stack1 = blockHelperMissing.call(depth0, stack2, stack1, tmp1); }
+    if(stack1 || stack1 === 0) { buffer += stack1; }
+    buffer += "\n					</select>\n				</div>\n			</div>\n		</form>\n	</div>\n	<div class=\"modal-footer\">\n		<button class=\"btn\" data-dismiss=\"modal\" aria-hidden=\"true\">Close</button>\n		<button id=\"save-profile\" class=\"btn btn-primary\">Save changes</button>\n	</div>\n</div>";
     return buffer;});
 });
 window.require.register("views/templates/profilesLayout", function(exports, require, module) {

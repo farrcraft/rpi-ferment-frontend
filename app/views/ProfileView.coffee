@@ -20,8 +20,10 @@ module.exports = class ProfileView extends Backbone.Marionette.ItemView
 				application: application
 			modal = new ProfileModalView(options)
 			application.layout.modal.show modal
+			false
 
 		deleteProfile: (e) =>
 			@model.once 'sync', () -> 
 				application.vent.trigger 'Profile:Modified'
 			@model.destroy()
+			false

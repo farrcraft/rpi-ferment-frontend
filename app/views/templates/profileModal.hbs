@@ -24,9 +24,11 @@
 				<label class="control-label" for="profile-input-mode">Control Mode</label>
 				<div class="controls">
 					<select id="profile-input-mode">
+					{{#select control_mode}}
 						<option value="none">None</option>
 						<option value="pid">PID</option>
 						<option value="manual">Manual</option>
+					{{/select}}
 					</select>
 				</div>
 			</div>
