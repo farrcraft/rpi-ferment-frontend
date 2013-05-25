@@ -1,4 +1,5 @@
 ProfileModalView = require 'views/ProfileModalView'
+ProfileModel = require 'models/profileModel'
 
 module.exports = class ProfileController extends Backbone.Marionette.Controller
 	initialize: (options) =>
@@ -6,8 +7,13 @@ module.exports = class ProfileController extends Backbone.Marionette.Controller
 
 		$('#new-profile-nav').on 'click', () =>
 			@app.vent.trigger 'Nav:NewProfile'
+			# return false to prevent event bubble from changing history hash
 			false
 
 		@app.vent.on 'Nav:NewProfile', () =>
-			modal = new ProfileModalView()
+			model = new ProfileModel()
+			options =
+				application: @app
+				model: model
+			modal = new ProfileModalView(options)
 			@app.layout.modal.show modal
