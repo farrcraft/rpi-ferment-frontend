@@ -22,4 +22,4 @@ module.exports = class ProfileModalView extends Backbone.Marionette.ItemView
 		@model.once 'sync', () => 
 			@app.vent.trigger 'Profile:Modified'
 		@model.save()
-		@app.layout.modal.close()		
+		@app.layout.modal.close()

@@ -1394,7 +1394,7 @@ window.require.register("views/FermentationStepModalView", function(exports, req
           order: $('#step-input-order').val()
         };
         steps = this.profile_.get('steps');
-        steps.push(step);
+        steps[step.order - 1] = step;
         this.profile_.set({
           steps: steps
         });
@@ -1443,10 +1443,29 @@ window.require.register("views/FermentationStepView", function(exports, require,
       };
 
       FermentationStepView.prototype.editStep = function(e) {
+        var modal, options;
+        options = {
+          profile: this.model.get('profile'),
+          model: this.model,
+          application: application
+        };
+        modal = new FermentationStepModalView(options);
+        application.layout.modal.show(modal);
         return false;
       };
 
       FermentationStepView.prototype.deleteStep = function(e) {
+        var position, profile, steps,
+          _this = this;
+        profile = this.model.get('profile');
+        steps = profile.get('steps');
+        position = this.model.get('order');
+        steps.splice(position - 1, 1);
+        profile.set('steps', steps);
+        profile.once('sync', function() {
+          return application.vent.trigger('Profile:Modified');
+        });
+        profile.save();
         return false;
       };
 

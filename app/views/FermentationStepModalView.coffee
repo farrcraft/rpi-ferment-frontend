@@ -19,7 +19,7 @@ module.exports = class FermentationStepModalView extends Backbone.Marionette.Ite
 			temperature: $('#step-input-temperature').val()
 			order: $('#step-input-order').val()
 		steps = @profile_.get 'steps'
-		steps.push step
+		steps[step.order - 1] = step
 		@profile_.set steps: steps
 		@profile_.once 'sync', () => 
 			@app.vent.trigger 'Profile:Modified'
