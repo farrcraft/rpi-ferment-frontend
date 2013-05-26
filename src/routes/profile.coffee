@@ -24,6 +24,7 @@ module.exports.routes = (app) ->
 		profile = new model()
 		profile.name = req.body.name
 		profile.control_mode = req.body.control_mode
+		profile.sensor = req.body.sensor
 		saveCallback = (err) ->
 			return
 		profile.save saveCallback
@@ -41,6 +42,7 @@ module.exports.routes = (app) ->
 		model.findById req.params.id, (err, profile) ->
 			profile.name = req.body.name
 			profile.control_mode = req.body.control_mode
+			profile.sensor = req.body.sensor
 			profile.save (err) ->
 				if not err
 					res.send profile

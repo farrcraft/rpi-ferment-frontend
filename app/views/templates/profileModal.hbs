@@ -16,7 +16,8 @@
 				<label class="control-label" for="profile-input-sensor">Sensor</label>
 				<div class="controls">
 					<select id="profile-input-sensor">
-						<option value=""></option>
+						{{#sensorList sensor}}
+						{{/sensorList}}
 					</select>
 				</div>
 			</div>

@@ -1,14 +1,15 @@
 GraphCollectionView = require 'views/GraphCollectionView'
 GraphCollection = require 'models/graphCollection'
 GraphModel = require 'models/graphModel'
+application = require 'application'
 
 module.exports = class HomeLayout extends Backbone.Marionette.Layout
 	template: require('views/templates/homeLayout')
 
 	initialize: () =>
 		graphRegion = @addRegion 'graphs', '#graphs'
-		socket = io.connect 'http://graphite:6001'
-		socket.on 'config', (config) =>
+
+		application.vent.on 'Socket:Config', (config) =>
 			models = []
 			sensor = for sensor in config.sensors
 				if sensor.type is 'fermenter'
@@ -31,11 +32,3 @@ module.exports = class HomeLayout extends Backbone.Marionette.Layout
 			collection = new GraphCollection models
 			view = new GraphCollectionView { collection: collection }
 			graphRegion.show view
-
-		socket.on 'pv', (data) =>
-			console.log 'new pv'
-		socket.on 'sv', (data) =>
-			console.log 'new sv'
-		socket.on 'mode', (data) =>
-
-		socket.emit 'config'

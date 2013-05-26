@@ -97,20 +97,25 @@ window.require.register("application", function(exports, require, module) {
       __extends(Application, _super);
 
       function Application() {
+        this.setupSockets = __bind(this.setupSockets, this);
         this.initialize = __bind(this.initialize, this);
         Application.__super__.constructor.apply(this, arguments);
       }
 
       Application.prototype.graph_ = {};
 
+      Application.prototype.config_ = {};
+
       Application.prototype.initialize = function() {
         var _this = this;
         this.graph_ = new Graph();
+        this.socket_ = io.connect('http://graphite:6001');
         this.on("initialize:after", function(options) {
           options = {
             application: _this
           };
           _this.controller_ = new ProfileController(options);
+          _this.setupSockets();
           Backbone.history.start();
           return typeof Object.freeze === "function" ? Object.freeze(_this) : void 0;
         });
@@ -127,6 +132,26 @@ window.require.register("application", function(exports, require, module) {
           return _this.router = new Router();
         });
         return this.start();
+      };
+
+      Application.prototype.setupSockets = function() {
+        var _this = this;
+        this.socket_.on('config', function(config) {
+          _this.controller_.config_ = config;
+          return _this.vent.trigger('Socket:Config', config);
+        });
+        this.socket_.on('pv', function(data) {
+          _this.vent.trigger('Socket:PV');
+          return console.log('new pv');
+        });
+        this.socket_.on('sv', function(data) {
+          _this.vent.trigger('Socket:SV');
+          return console.log('new sv');
+        });
+        this.socket_.on('mode', function(data) {
+          return _this.vent.trigger('Socket:Mode', config);
+        });
+        return this.socket_.emit('config');
       };
 
       return Application;
@@ -191,6 +216,7 @@ window.require.register("initialize", function(exports, require, module) {
     application = require('application');
 
     $(function() {
+      window.RpiApp = application;
       return application.initialize();
     });
 
@@ -1047,6 +1073,28 @@ window.require.register("lib/view_helper", function(exports, require, module) {
       return $el.html();
     });
 
+    Handlebars.registerHelper('sensorList', function(value, options) {
+      var markup, selected, sensor;
+      markup = '';
+      sensor = (function() {
+        var _i, _len, _ref, _results;
+        _ref = window.RpiApp.controller_.config_.sensors;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          sensor = _ref[_i];
+          if (sensor.type === 'fermenter') {
+            selected = '';
+            if (value === sensor.name) selected = ' selected="selected"';
+            _results.push(markup = markup + '<option value="' + sensor.name + '"' + selected + '>' + sensor.label + '</option>');
+          } else {
+            _results.push(void 0);
+          }
+        }
+        return _results;
+      })();
+      return markup;
+    });
+
   }).call(this);
   
 });
@@ -1348,7 +1396,7 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
 });
 window.require.register("views/HomeLayout", function(exports, require, module) {
   (function() {
-    var GraphCollection, GraphCollectionView, GraphModel, HomeLayout,
+    var GraphCollection, GraphCollectionView, GraphModel, HomeLayout, application,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
@@ -1358,6 +1406,8 @@ window.require.register("views/HomeLayout", function(exports, require, module) {
     GraphCollection = require('models/graphCollection');
 
     GraphModel = require('models/graphModel');
+
+    application = require('application');
 
     module.exports = HomeLayout = (function(_super) {
 
@@ -1371,11 +1421,10 @@ window.require.register("views/HomeLayout", function(exports, require, module) {
       HomeLayout.prototype.template = require('views/templates/homeLayout');
 
       HomeLayout.prototype.initialize = function() {
-        var graphRegion, socket,
+        var graphRegion,
           _this = this;
         graphRegion = this.addRegion('graphs', '#graphs');
-        socket = io.connect('http://graphite:6001');
-        socket.on('config', function(config) {
+        return application.vent.on('Socket:Config', function(config) {
           var collection, model, models, options, sensor, view;
           models = [];
           sensor = (function() {
@@ -1410,14 +1459,6 @@ window.require.register("views/HomeLayout", function(exports, require, module) {
           });
           return graphRegion.show(view);
         });
-        socket.on('pv', function(data) {
-          return console.log('new pv');
-        });
-        socket.on('sv', function(data) {
-          return console.log('new sv');
-        });
-        socket.on('mode', function(data) {});
-        return socket.emit('config');
       };
 
       return HomeLayout;
@@ -1572,16 +1613,19 @@ window.require.register("views/ProfileModalView", function(exports, require, mod
       };
 
       ProfileModalView.prototype.initialize = function(options) {
-        return this.app = options.application;
+        this.app = options.application;
+        return console.log(this.app.config_);
       };
 
       ProfileModalView.prototype.saveProfile = function(e) {
-        var controlMode, name,
+        var controlMode, name, sensor,
           _this = this;
         name = $('#profile-input-name').val();
         controlMode = $('#profile-input-mode').val();
+        sensor = $('#profile-input-sensor').val();
         this.model.set('name', name);
         this.model.set('control_mode', controlMode);
+        this.model.set('sensor', sensor);
         this.model.once('sync', function() {
           return _this.app.vent.trigger('Profile:Modified');
         });
@@ -1867,6 +1911,11 @@ window.require.register("views/templates/profileModal", function(exports, requir
   function program1(depth0,data) {
     
     
+    return "\n						";}
+
+  function program3(depth0,data) {
+    
+    
     return "\n						<option value=\"none\">None</option>\n						<option value=\"pid\">PID</option>\n						<option value=\"manual\">Manual</option>\n					";}
 
     buffer += "<div id=\"profile-modal\">\n	<div class=\"modal-header\">\n		<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">×</button>\n		<h3 id=\"profileModalLabel\">Fermentation Profile</h3>\n	</div>\n	<div class=\"modal-body\">\n		<form class=\"form-horizontal\" id=\"profile-form\">\n			<input type=\"hidden\" id=\"profile-input-id\" value=\"\">\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"profile-input-name\">Name</label>\n				<div class=\"controls\">\n					<input type=\"text\" id=\"profile-input-name\" placeholder=\"Name\" value=\"";
@@ -1874,12 +1923,24 @@ window.require.register("views/templates/profileModal", function(exports, requir
     stack1 = foundHelper || depth0.name;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "name", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "\">\n				</div>\n			</div>\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"profile-input-sensor\">Sensor</label>\n				<div class=\"controls\">\n					<select id=\"profile-input-sensor\">\n						<option value=\"\"></option>\n					</select>\n				</div>\n			</div>\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"profile-input-mode\">Control Mode</label>\n				<div class=\"controls\">\n					<select id=\"profile-input-mode\">\n					";
+    buffer += escapeExpression(stack1) + "\">\n				</div>\n			</div>\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"profile-input-sensor\">Sensor</label>\n				<div class=\"controls\">\n					<select id=\"profile-input-sensor\">\n						";
+    foundHelper = helpers.sensor;
+    stack1 = foundHelper || depth0.sensor;
+    foundHelper = helpers.sensorList;
+    stack2 = foundHelper || depth0.sensorList;
+    tmp1 = self.program(1, program1, data);
+    tmp1.hash = {};
+    tmp1.fn = tmp1;
+    tmp1.inverse = self.noop;
+    if(foundHelper && typeof stack2 === functionType) { stack1 = stack2.call(depth0, stack1, tmp1); }
+    else { stack1 = blockHelperMissing.call(depth0, stack2, stack1, tmp1); }
+    if(stack1 || stack1 === 0) { buffer += stack1; }
+    buffer += "\n					</select>\n				</div>\n			</div>\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"profile-input-mode\">Control Mode</label>\n				<div class=\"controls\">\n					<select id=\"profile-input-mode\">\n					";
     foundHelper = helpers.control_mode;
     stack1 = foundHelper || depth0.control_mode;
     foundHelper = helpers.select;
     stack2 = foundHelper || depth0.select;
-    tmp1 = self.program(1, program1, data);
+    tmp1 = self.program(3, program3, data);
     tmp1.hash = {};
     tmp1.fn = tmp1;
     tmp1.inverse = self.noop;
