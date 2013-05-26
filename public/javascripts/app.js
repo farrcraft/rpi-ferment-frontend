@@ -1242,12 +1242,70 @@ window.require.register("models/profileModel", function(exports, require, module
             name: 'Fermentation Step',
             duration: 7,
             temperature: 65,
+            unit: 'days',
             order: 1
           }
         ]
       };
 
       return ProfileModel;
+
+    })(Backbone.Model);
+
+  }).call(this);
+  
+});
+window.require.register("models/stepCollection", function(exports, require, module) {
+  (function() {
+    var StepCollection, StepModel,
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    StepModel = require('models/stepModel');
+
+    module.exports = StepCollection = (function(_super) {
+
+      __extends(StepCollection, _super);
+
+      function StepCollection() {
+        StepCollection.__super__.constructor.apply(this, arguments);
+      }
+
+      StepCollection.prototype.model = StepModel;
+
+      return StepCollection;
+
+    })(Backbone.Collection);
+
+  }).call(this);
+  
+});
+window.require.register("models/stepModel", function(exports, require, module) {
+  (function() {
+    var StepModel,
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    module.exports = StepModel = (function(_super) {
+
+      __extends(StepModel, _super);
+
+      function StepModel() {
+        StepModel.__super__.constructor.apply(this, arguments);
+      }
+
+      StepModel.prototype.idAttribute = '_id';
+
+      StepModel.prototype.defaults = {
+        name: 'Fermentation Step',
+        duration: 7,
+        temperature: 65,
+        unit: 'days',
+        order: 1,
+        profile: {}
+      };
+
+      return StepModel;
 
     })(Backbone.Model);
 
@@ -1293,17 +1351,21 @@ window.require.register("views/AppLayout", function(exports, require, module) {
 });
 window.require.register("views/FermentationStepModalView", function(exports, require, module) {
   (function() {
-    var FermentationStepModalView, template,
+    var FermentationStepModalView, StepModel, template,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
     template = require('./templates/fermentationStepModal');
+
+    StepModel = require('models/stepModel');
 
     module.exports = FermentationStepModalView = (function(_super) {
 
       __extends(FermentationStepModalView, _super);
 
       function FermentationStepModalView() {
+        this.saveStep = __bind(this.saveStep, this);
         FermentationStepModalView.__super__.constructor.apply(this, arguments);
       }
 
@@ -1311,7 +1373,84 @@ window.require.register("views/FermentationStepModalView", function(exports, req
 
       FermentationStepModalView.prototype.template = template;
 
+      FermentationStepModalView.prototype.profile_ = {};
+
+      FermentationStepModalView.prototype.events = {
+        'click #save-step': 'saveStep'
+      };
+
+      FermentationStepModalView.prototype.initialize = function(options) {
+        this.profile_ = options.profile;
+        return this.app = options.application;
+      };
+
+      FermentationStepModalView.prototype.saveStep = function(e) {
+        var step, steps,
+          _this = this;
+        step = {
+          name: $('#step-input-name').val(),
+          duration: $('#step-input-duration').val(),
+          temperature: $('#step-input-temperature').val(),
+          order: $('#step-input-order').val()
+        };
+        steps = this.profile_.get('steps');
+        steps.push(step);
+        this.profile_.set({
+          steps: steps
+        });
+        this.profile_.once('sync', function() {
+          return _this.app.vent.trigger('Profile:Modified');
+        });
+        this.profile_.save();
+        return this.app.layout.modal.close();
+      };
+
       return FermentationStepModalView;
+
+    })(Backbone.Marionette.ItemView);
+
+  }).call(this);
+  
+});
+window.require.register("views/FermentationStepView", function(exports, require, module) {
+  (function() {
+    var FermentationStepModalView, FermentationStepView, application, template,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    application = require('application');
+
+    template = require('./templates/step');
+
+    FermentationStepModalView = require('views/FermentationStepModalView');
+
+    module.exports = FermentationStepView = (function(_super) {
+
+      __extends(FermentationStepView, _super);
+
+      function FermentationStepView() {
+        this.deleteStep = __bind(this.deleteStep, this);
+        this.editStep = __bind(this.editStep, this);
+        FermentationStepView.__super__.constructor.apply(this, arguments);
+      }
+
+      FermentationStepView.prototype.template = template;
+
+      FermentationStepView.prototype.events = {
+        'click .edit-step': 'editStep',
+        'click .delete-step': 'deleteStep'
+      };
+
+      FermentationStepView.prototype.editStep = function(e) {
+        return false;
+      };
+
+      FermentationStepView.prototype.deleteStep = function(e) {
+        return false;
+      };
+
+      return FermentationStepView;
 
     })(Backbone.Marionette.ItemView);
 
@@ -1613,8 +1752,7 @@ window.require.register("views/ProfileModalView", function(exports, require, mod
       };
 
       ProfileModalView.prototype.initialize = function(options) {
-        this.app = options.application;
-        return console.log(this.app.config_);
+        return this.app = options.application;
       };
 
       ProfileModalView.prototype.saveProfile = function(e) {
@@ -1642,7 +1780,7 @@ window.require.register("views/ProfileModalView", function(exports, require, mod
 });
 window.require.register("views/ProfileView", function(exports, require, module) {
   (function() {
-    var FermentationStepModalView, ProfileModalView, ProfileView, application, template,
+    var FermentationStepModalView, FermentationStepView, ProfileModalView, ProfileView, StepCollection, StepModel, application, template,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
@@ -1655,6 +1793,12 @@ window.require.register("views/ProfileView", function(exports, require, module) 
 
     FermentationStepModalView = require('views/FermentationStepModalView');
 
+    StepModel = require('models/stepModel');
+
+    StepCollection = require('models/stepCollection');
+
+    FermentationStepView = require('views/FermentationStepView');
+
     module.exports = ProfileView = (function(_super) {
 
       __extends(ProfileView, _super);
@@ -1662,6 +1806,7 @@ window.require.register("views/ProfileView", function(exports, require, module) 
       function ProfileView() {
         this.deleteProfile = __bind(this.deleteProfile, this);
         this.editProfile = __bind(this.editProfile, this);
+        this.initialize = __bind(this.initialize, this);
         ProfileView.__super__.constructor.apply(this, arguments);
       }
 
@@ -1673,9 +1818,37 @@ window.require.register("views/ProfileView", function(exports, require, module) 
         'click .delete': 'deleteProfile'
       };
 
+      ProfileView.prototype.itemView = FermentationStepView;
+
+      ProfileView.prototype.itemViewContainer = '#steps';
+
+      ProfileView.prototype.initialize = function(options) {
+        var collection, model, step, steps;
+        collection = new StepCollection();
+        steps = this.model.get('steps');
+        if (steps !== void 0) {
+          step = (function() {
+            var _i, _len, _results;
+            _results = [];
+            for (_i = 0, _len = steps.length; _i < _len; _i++) {
+              step = steps[_i];
+              model = new StepModel(step);
+              model.set('profile', this.model);
+              _results.push(collection.add(model));
+            }
+            return _results;
+          }).call(this);
+        }
+        return this.collection = collection;
+      };
+
       ProfileView.prototype.addStep = function(e) {
-        var modal;
-        modal = new FermentationStepModalView();
+        var modal, options;
+        options = {
+          profile: this.model,
+          application: application
+        };
+        modal = new FermentationStepModalView(options);
         return application.layout.modal.show(modal);
       };
 
@@ -1700,7 +1873,7 @@ window.require.register("views/ProfileView", function(exports, require, module) 
 
       return ProfileView;
 
-    })(Backbone.Marionette.ItemView);
+    })(Backbone.Marionette.CompositeView);
 
   }).call(this);
   
@@ -1767,29 +1940,45 @@ window.require.register("views/templates/appLayout", function(exports, require, 
 window.require.register("views/templates/fermentationStepModal", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
-    var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
+    var buffer = "", stack1, stack2, foundHelper, tmp1, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression, blockHelperMissing=helpers.blockHelperMissing;
 
+  function program1(depth0,data) {
+    
+    
+    return "\n						<option value=\"days\">Days</option>\n						<option value=\"hours\">Hours</option>\n						";}
 
     buffer += "<div id=\"step-modal\">\n	<div class=\"modal-header\">\n		<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">×</button>\n		<h3 id=\"stepModalLabel\">Fermentation Step</h3>\n	</div>\n	<div class=\"modal-body\">\n		<form class=\"form-horizontal\" id=\"step-form\">\n			<input type=\"hidden\" name=\"step-input-id\" value=\"\">\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"step-input-name\">Name</label>\n				<div class=\"controls\">\n					<input type=\"text\" id=\"step-input-name\" placeholder=\"Name\" value=\"";
-    foundHelper = helpers.stepName;
-    stack1 = foundHelper || depth0.stepName;
+    foundHelper = helpers.name;
+    stack1 = foundHelper || depth0.name;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "stepName", { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "name", { hash: {} }); }
     buffer += escapeExpression(stack1) + "\">\n				</div>\n			</div>\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"step-input-duration\">Duration</label>\n				<div class=\"controls\">\n					<input type=\"text\" id=\"step-input-duration\" placeholder=\"Duration\" value=\"";
-    foundHelper = helpers.stepDuration;
-    stack1 = foundHelper || depth0.stepDuration;
+    foundHelper = helpers.duration;
+    stack1 = foundHelper || depth0.duration;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "stepDuration", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "\">\n				</div>\n			</div>\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"step-input-temperature\">Temperature</label>\n				<div class=\"controls\">\n					<input type=\"text\" id=\"step-input-temperature\" placeholder=\"Temperature\" value=\"";
-    foundHelper = helpers.stepTemperature;
-    stack1 = foundHelper || depth0.stepTemperature;
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "duration", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\">\n					<select id=\"step-input-unit\" class=\"span1\">\n						";
+    foundHelper = helpers.unit;
+    stack1 = foundHelper || depth0.unit;
+    foundHelper = helpers.select;
+    stack2 = foundHelper || depth0.select;
+    tmp1 = self.program(1, program1, data);
+    tmp1.hash = {};
+    tmp1.fn = tmp1;
+    tmp1.inverse = self.noop;
+    if(foundHelper && typeof stack2 === functionType) { stack1 = stack2.call(depth0, stack1, tmp1); }
+    else { stack1 = blockHelperMissing.call(depth0, stack2, stack1, tmp1); }
+    if(stack1 || stack1 === 0) { buffer += stack1; }
+    buffer += "\n					</select>\n				</div>\n			</div>\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"step-input-temperature\">Temperature</label>\n				<div class=\"controls\">\n					<input type=\"text\" id=\"step-input-temperature\" placeholder=\"Temperature\" value=\"";
+    foundHelper = helpers.temperature;
+    stack1 = foundHelper || depth0.temperature;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "stepTemperature", { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "temperature", { hash: {} }); }
     buffer += escapeExpression(stack1) + "\">\n				</div>\n			</div>\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"step-input-order\">Order</label>\n				<div class=\"controls\">\n					<input type=\"text\" id=\"step-input-order\" placeholder=\"Order\" value=\"";
-    foundHelper = helpers.stepOrder;
-    stack1 = foundHelper || depth0.stepOrder;
+    foundHelper = helpers.order;
+    stack1 = foundHelper || depth0.order;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "stepOrder", { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "order", { hash: {} }); }
     buffer += escapeExpression(stack1) + "\">\n				</div>\n			</div>\n		</form>\n	</div>\n	<div class=\"modal-footer\">\n		<button class=\"btn\" data-dismiss=\"modal\" aria-hidden=\"true\">Close</button>\n		<button id=\"save-step\" class=\"btn btn-primary\">Save changes</button>\n	</div>\n</div>";
     return buffer;});
 });
@@ -1873,34 +2062,15 @@ window.require.register("views/templates/homeLayout", function(exports, require,
 window.require.register("views/templates/profile", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
-    var buffer = "", stack1, stack2, foundHelper, tmp1, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
+    var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
-  function program1(depth0,data) {
-    
-    var buffer = "", stack1;
-    buffer += "\n				<li>";
-    stack1 = depth0.name;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "this.name", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</li>\n			";
-    return buffer;}
 
     buffer += "<tr>\n	<td>";
     foundHelper = helpers.name;
     stack1 = foundHelper || depth0.name;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "name", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</td>\n	<td><a class=\"edit\" href=\"#\">edit</a></td>\n	<td><a class=\"delete\" href=\"#\">delete</a></td>\n</tr>\n<tr>\n	<td colspan=\"3\">Steps <button class=\"add-step\" class=\"btn btn-mini\">Add Step</button></td>\n	<td>\n		<ol>\n			";
-    foundHelper = helpers.steps;
-    stack1 = foundHelper || depth0.steps;
-    stack2 = helpers.each;
-    tmp1 = self.program(1, program1, data);
-    tmp1.hash = {};
-    tmp1.fn = tmp1;
-    tmp1.inverse = self.noop;
-    stack1 = stack2.call(depth0, stack1, tmp1);
-    if(stack1 || stack1 === 0) { buffer += stack1; }
-    buffer += "\n		</ol>\n	<td>\n</tr>";
+    buffer += escapeExpression(stack1) + "</td>\n	<td><a class=\"edit\" href=\"#\">edit</a></td>\n	<td><a class=\"delete\" href=\"#\">delete</a></td>\n</tr>\n<tr>\n	<td colspan=\"3\">Steps <button class=\"add-step\" class=\"btn btn-mini\">Add Step</button></td>\n	<td>\n		<ol id=\"steps\">\n		</ol>\n	<td>\n</tr>";
     return buffer;});
 });
 window.require.register("views/templates/profileModal", function(exports, require, module) {
@@ -1957,4 +2127,18 @@ window.require.register("views/templates/profilesLayout", function(exports, requ
 
 
     return "<h2>Fermentation Profiles</h2>\n<hr />\n<table id=\"profiles-table\" class=\"table\">\n</table>\n";});
+});
+window.require.register("views/templates/step", function(exports, require, module) {
+  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+    helpers = helpers || Handlebars.helpers;
+    var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
+
+
+    buffer += "<li>";
+    foundHelper = helpers.name;
+    stack1 = foundHelper || depth0.name;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "name", { hash: {} }); }
+    buffer += escapeExpression(stack1) + " <a class=\"edit-step\" href=\"#\">edit</a> <a class=\"delete-step\" href=\"#\">delete</a></li>\n";
+    return buffer;});
 });

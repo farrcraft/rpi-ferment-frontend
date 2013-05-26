@@ -1,5 +1,5 @@
-template = require './templates/profileModal'
-ProfileModel = require 'models/profileModel'
+template 		= require './templates/profileModal'
+ProfileModel 	= require 'models/profileModel'
 
 module.exports = class ProfileModalView extends Backbone.Marionette.ItemView
 	id: 'profile-modal-view'
@@ -9,7 +9,6 @@ module.exports = class ProfileModalView extends Backbone.Marionette.ItemView
 
 	initialize: (options) =>
 		@app = options.application
-		console.log @app.config_
 
 	saveProfile: (e) =>
 		name = $('#profile-input-name').val()

@@ -15,6 +15,7 @@ Profile.add
 	steps: [
 		name: String
 		duration: Number
+		unit: String
 		temperature: Number
 		order: Number
 	]

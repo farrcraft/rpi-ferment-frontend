@@ -12,6 +12,7 @@ module.exports = class ProfileModel extends Backbone.Model
 				name: 'Fermentation Step'
 				duration: 7
 				temperature: 65
+				unit: 'days'
 				order: 1
 			}
 		]

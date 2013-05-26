@@ -9,25 +9,31 @@
 			<div class="control-group">
 				<label class="control-label" for="step-input-name">Name</label>
 				<div class="controls">
-					<input type="text" id="step-input-name" placeholder="Name" value="{{stepName}}">
+					<input type="text" id="step-input-name" placeholder="Name" value="{{name}}">
 				</div>
 			</div>
 			<div class="control-group">
 				<label class="control-label" for="step-input-duration">Duration</label>
 				<div class="controls">
-					<input type="text" id="step-input-duration" placeholder="Duration" value="{{stepDuration}}">
+					<input type="text" id="step-input-duration" placeholder="Duration" value="{{duration}}">
+					<select id="step-input-unit" class="span1">
+						{{#select unit}}
+						<option value="days">Days</option>
+						<option value="hours">Hours</option>
+						{{/select}}
+					</select>
 				</div>
 			</div>
 			<div class="control-group">
 				<label class="control-label" for="step-input-temperature">Temperature</label>
 				<div class="controls">
-					<input type="text" id="step-input-temperature" placeholder="Temperature" value="{{stepTemperature}}">
+					<input type="text" id="step-input-temperature" placeholder="Temperature" value="{{temperature}}">
 				</div>
 			</div>
 			<div class="control-group">
 				<label class="control-label" for="step-input-order">Order</label>
 				<div class="controls">
-					<input type="text" id="step-input-order" placeholder="Order" value="{{stepOrder}}">
+					<input type="text" id="step-input-order" placeholder="Order" value="{{order}}">
 				</div>
 			</div>
 		</form>
