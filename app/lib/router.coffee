@@ -11,9 +11,12 @@ module.exports = class Router extends Backbone.Router
 	home: =>
 		home = new HomeLayout()
 		application.layout.content.close()
-		application.layout.content.show(home)
+		application.layout.content.show home
 
 	profiles: =>
-		profiles = new ProfilesLayout()
+		options = 
+			application: application
+		profiles = new ProfilesLayout options
 		application.layout.content.close()
-		application.layout.content.show(profiles)
+		application.layout.content.show profiles
+		profiles.showProfiles()

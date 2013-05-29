@@ -165,7 +165,7 @@ window.require.register("application", function(exports, require, module) {
 });
 window.require.register("controllers/profile", function(exports, require, module) {
   (function() {
-    var ProfileController, ProfileModalView, ProfileModel,
+    var ProfileCollection, ProfileController, ProfileModalView, ProfileModel,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
@@ -173,6 +173,8 @@ window.require.register("controllers/profile", function(exports, require, module
     ProfileModalView = require('views/ProfileModalView');
 
     ProfileModel = require('models/profileModel');
+
+    ProfileCollection = require('models/profileCollection');
 
     module.exports = ProfileController = (function(_super) {
 
@@ -186,6 +188,13 @@ window.require.register("controllers/profile", function(exports, require, module
       ProfileController.prototype.initialize = function(options) {
         var _this = this;
         this.app = options.application;
+        this.profiles_ = new ProfileCollection();
+        this.profiles_.fetch({
+          add: true,
+          success: function() {
+            return _this.app.vent.trigger('Profiles:Loaded');
+          }
+        });
         $('#new-profile-nav').on('click', function() {
           _this.app.vent.trigger('Nav:NewProfile');
           return false;
@@ -1044,10 +1053,14 @@ window.require.register("lib/router", function(exports, require, module) {
       };
 
       Router.prototype.profiles = function() {
-        var profiles;
-        profiles = new ProfilesLayout();
+        var options, profiles;
+        options = {
+          application: application
+        };
+        profiles = new ProfilesLayout(options);
         application.layout.content.close();
-        return application.layout.content.show(profiles);
+        application.layout.content.show(profiles);
+        return profiles.showProfiles();
       };
 
       return Router;
@@ -2054,14 +2067,12 @@ window.require.register("views/ProfileView", function(exports, require, module) 
 });
 window.require.register("views/ProfilesLayout", function(exports, require, module) {
   (function() {
-    var ProfileCollection, ProfileCollectionView, ProfileModel, ProfilesLayout,
+    var ProfileCollectionView, ProfileModel, ProfilesLayout,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
     ProfileCollectionView = require('views/ProfileCollectionView');
-
-    ProfileCollection = require('models/profileCollection');
 
     ProfileModel = require('models/profileModel');
 
@@ -2070,6 +2081,7 @@ window.require.register("views/ProfilesLayout", function(exports, require, modul
       __extends(ProfilesLayout, _super);
 
       function ProfilesLayout() {
+        this.showProfiles = __bind(this.showProfiles, this);
         this.initialize = __bind(this.initialize, this);
         ProfilesLayout.__super__.constructor.apply(this, arguments);
       }
@@ -2080,20 +2092,21 @@ window.require.register("views/ProfilesLayout", function(exports, require, modul
         profiles: "#profiles-table"
       };
 
-      ProfilesLayout.prototype.initialize = function() {
-        var collection,
-          _this = this;
-        collection = new ProfileCollection();
-        return collection.fetch({
-          add: true,
-          success: function() {
-            var view;
-            view = new ProfileCollectionView({
-              collection: collection
-            });
-            return _this.profiles.show(view);
-          }
+      ProfilesLayout.prototype.initialize = function(options) {
+        var _this = this;
+        this.app = options.application;
+        return this.app.vent.on('Profiles:Loaded', function() {
+          return _this.showProfiles();
         });
+      };
+
+      ProfilesLayout.prototype.showProfiles = function() {
+        var view;
+        view = new ProfileCollectionView({
+          collection: this.app.controller_.profiles_
+        });
+        this.profiles.close();
+        return this.profiles.show(view);
       };
 
       return ProfilesLayout;
