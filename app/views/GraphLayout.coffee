@@ -42,14 +42,11 @@ module.exports = class GraphLayout extends Backbone.Marionette.Layout
 		@sampleRegion = @addRegion sampleRegionId, '#' + sampleRegionId
 		@heaterRegion = @addRegion heaterRegionId, '#' + heaterRegionId
 
-		sample = @model.get 'sample'
-		el = fermenterId
-		@graphView = application.graph_.createView fermenterId, el, sample
-		@graphRegion.show @graphView
-		@graphView.render()
+		@renderGraph()
 
 		options =
 			fermenterId: fermenterId
+			layout: @
 
 		heaterView = new HeaterView options
 		@heaterRegion.show heaterView
@@ -62,6 +59,14 @@ module.exports = class GraphLayout extends Backbone.Marionette.Layout
 			@ui.editButton.hide()
 			@ui.profileButton.text '[set profile]'
 		return
+
+	renderGraph: () =>
+		fermenterId = @model.get 'fermenterId'
+		sample = @model.get 'sample'
+		el = fermenterId
+		@graphView = application.graph_.createView fermenterId, el, sample
+		@graphRegion.show @graphView
+		@graphView.render()
 
 	onClose: () =>
 		@graphView.model.stop()

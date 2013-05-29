@@ -12,6 +12,7 @@ module.exports = class SampleView extends Backbone.Marionette.ItemView
 
 	initialize: (options) ->
 		@fermenterId = options.fermenterId
+		@layout = options.layout
 		modelOptions = 
 			fermenterId: @fermenterId
 		@model = new SampleModel modelOptions
@@ -21,8 +22,9 @@ module.exports = class SampleView extends Backbone.Marionette.ItemView
 		newRate = $(e.target).text()
 		unit = newRate.substr newRate.length-1, 1
 		value = newRate.substring 0, newRate.indexOf unit
-		console.log 'set rate to ' + value + ' in unit ' + unit
 		@model.set 'current', value
 		@model.set 'unit', unit
 		@ui.currentSample.text newRate
+		@layout.model.set 'sample', value
+		@layout.renderGraph()
 		false

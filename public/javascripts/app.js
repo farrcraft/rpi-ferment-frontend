@@ -1597,6 +1597,7 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
         this.changeProfile = __bind(this.changeProfile, this);
         this.editProfile = __bind(this.editProfile, this);
         this.onClose = __bind(this.onClose, this);
+        this.renderGraph = __bind(this.renderGraph, this);
         this.onRender = __bind(this.onRender, this);
         this.updateProfileData = __bind(this.updateProfileData, this);
         this.initialize = __bind(this.initialize, this);
@@ -1637,7 +1638,7 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
       };
 
       GraphLayout.prototype.onRender = function() {
-        var el, fermenterId, graphRegionId, heaterRegionId, heaterView, options, profile, sample, sampleRegionId, sampleView;
+        var fermenterId, graphRegionId, heaterRegionId, heaterView, options, profile, sampleRegionId, sampleView;
         fermenterId = this.model.get('fermenterId');
         graphRegionId = fermenterId + '_graphRegion';
         sampleRegionId = fermenterId + '_sampleRegion';
@@ -1645,13 +1646,10 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
         this.graphRegion = this.addRegion(graphRegionId, '#' + graphRegionId);
         this.sampleRegion = this.addRegion(sampleRegionId, '#' + sampleRegionId);
         this.heaterRegion = this.addRegion(heaterRegionId, '#' + heaterRegionId);
-        sample = this.model.get('sample');
-        el = fermenterId;
-        this.graphView = application.graph_.createView(fermenterId, el, sample);
-        this.graphRegion.show(this.graphView);
-        this.graphView.render();
+        this.renderGraph();
         options = {
-          fermenterId: fermenterId
+          fermenterId: fermenterId,
+          layout: this
         };
         heaterView = new HeaterView(options);
         this.heaterRegion.show(heaterView);
@@ -1662,6 +1660,16 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
           this.ui.editButton.hide();
           this.ui.profileButton.text('[set profile]');
         }
+      };
+
+      GraphLayout.prototype.renderGraph = function() {
+        var el, fermenterId, sample;
+        fermenterId = this.model.get('fermenterId');
+        sample = this.model.get('sample');
+        el = fermenterId;
+        this.graphView = application.graph_.createView(fermenterId, el, sample);
+        this.graphRegion.show(this.graphView);
+        return this.graphView.render();
       };
 
       GraphLayout.prototype.onClose = function() {
@@ -2188,6 +2196,7 @@ window.require.register("views/SampleView", function(exports, require, module) {
       SampleView.prototype.initialize = function(options) {
         var modelOptions;
         this.fermenterId = options.fermenterId;
+        this.layout = options.layout;
         modelOptions = {
           fermenterId: this.fermenterId
         };
@@ -2199,10 +2208,11 @@ window.require.register("views/SampleView", function(exports, require, module) {
         newRate = $(e.target).text();
         unit = newRate.substr(newRate.length - 1, 1);
         value = newRate.substring(0, newRate.indexOf(unit));
-        console.log('set rate to ' + value + ' in unit ' + unit);
         this.model.set('current', value);
         this.model.set('unit', unit);
         this.ui.currentSample.text(newRate);
+        this.layout.model.set('sample', value);
+        this.layout.renderGraph();
         return false;
       };
 
