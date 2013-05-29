@@ -23,7 +23,7 @@ module.exports = class HomeLayout extends Backbone.Marionette.Layout
 						fermenterId: sensor.name
 						fermenterName: sensor.label
 						profileName: sensor.name
-						heaterState: 'On'
+						heaterState: 'Off'
 						sampleOptions: [2, 4, 6, 8, 12, 24]
 						sampleRate:  24
 

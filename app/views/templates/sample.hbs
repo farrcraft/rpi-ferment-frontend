@@ -1,0 +1,8 @@
+<p>
+	Viewing Last <strong class="currentSample">{{current}}H</strong> 
+	[
+	{{#each range}}
+		<a id="{{fermenterId}}_sampleRate{{this}}" class="sampleRate" href="#">{{this}}H</a> 
+	{{/each}}
+	]
+</p>

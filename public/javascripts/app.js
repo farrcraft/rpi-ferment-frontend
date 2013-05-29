@@ -1165,6 +1165,32 @@ window.require.register("models/graphModel", function(exports, require, module) 
   }).call(this);
   
 });
+window.require.register("models/heaterModel", function(exports, require, module) {
+  (function() {
+    var HeaterModel,
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    module.exports = HeaterModel = (function(_super) {
+
+      __extends(HeaterModel, _super);
+
+      function HeaterModel() {
+        HeaterModel.__super__.constructor.apply(this, arguments);
+      }
+
+      HeaterModel.prototype.defaults = {
+        fermenterId: '',
+        state: 'off'
+      };
+
+      return HeaterModel;
+
+    })(Backbone.Model);
+
+  }).call(this);
+  
+});
 window.require.register("models/model", function(exports, require, module) {
   (function() {
     var Model,
@@ -1249,6 +1275,34 @@ window.require.register("models/profileModel", function(exports, require, module
       };
 
       return ProfileModel;
+
+    })(Backbone.Model);
+
+  }).call(this);
+  
+});
+window.require.register("models/sampleModel", function(exports, require, module) {
+  (function() {
+    var SampleModel,
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    module.exports = SampleModel = (function(_super) {
+
+      __extends(SampleModel, _super);
+
+      function SampleModel() {
+        SampleModel.__super__.constructor.apply(this, arguments);
+      }
+
+      SampleModel.prototype.defaults = {
+        fermenterId: '',
+        range: [72, 48, 24, 12, 8, 6, 4, 3, 2, 1],
+        unit: 'H',
+        current: 24
+      };
+
+      return SampleModel;
 
     })(Backbone.Model);
 
@@ -1507,18 +1561,24 @@ window.require.register("views/GraphCollectionView", function(exports, require, 
 });
 window.require.register("views/GraphLayout", function(exports, require, module) {
   (function() {
-    var GraphLayout, application,
+    var GraphLayout, HeaterView, SampleView, application,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
     application = require('application');
 
+    HeaterView = require('views/HeaterView');
+
+    SampleView = require('views/SampleView');
+
     module.exports = GraphLayout = (function(_super) {
 
       __extends(GraphLayout, _super);
 
       function GraphLayout() {
+        this.showHistory = __bind(this.showHistory, this);
+        this.changeProfile = __bind(this.changeProfile, this);
         this.onClose = __bind(this.onClose, this);
         this.onRender = __bind(this.onRender, this);
         this.initialize = __bind(this.initialize, this);
@@ -1527,27 +1587,122 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
 
       GraphLayout.prototype.template = require('views/templates/graphLayout');
 
+      GraphLayout.prototype.events = {
+        'click .changeProfile': 'changeProfile',
+        'click .history': 'showHistory'
+      };
+
+      GraphLayout.prototype.ui = {
+        profileLabel: '.changeProfile'
+      };
+
       GraphLayout.prototype.initialize = function(options) {};
 
       GraphLayout.prototype.onRender = function() {
-        var el, fermenterId, graphRegionId, sample;
+        var el, fermenterId, graphRegionId, heaterRegionId, heaterView, options, sample, sampleRegionId, sampleView;
         fermenterId = this.model.get('fermenterId');
-        graphRegionId = '#' + fermenterId + '_rgn';
-        this.graphRegion = this.addRegion(fermenterId, graphRegionId);
+        graphRegionId = fermenterId + '_graphRegion';
+        sampleRegionId = fermenterId + '_sampleRegion';
+        heaterRegionId = fermenterId + '_heaterRegion';
+        this.graphRegion = this.addRegion(graphRegionId, '#' + graphRegionId);
+        this.sampleRegion = this.addRegion(sampleRegionId, '#' + sampleRegionId);
+        this.heaterRegion = this.addRegion(heaterRegionId, '#' + heaterRegionId);
         sample = this.model.get('sample');
         el = fermenterId;
         this.graphView = application.graph_.createView(fermenterId, el, sample);
         this.graphRegion.show(this.graphView);
         this.graphView.render();
+        options = {
+          fermenterId: fermenterId
+        };
+        heaterView = new HeaterView(options);
+        this.heaterRegion.show(heaterView);
+        sampleView = new SampleView(options);
+        this.sampleRegion.show(sampleView);
       };
 
       GraphLayout.prototype.onClose = function() {
         this.graphView.model.stop();
       };
 
+      GraphLayout.prototype.changeProfile = function(e) {
+        console.log('change profile');
+        return false;
+      };
+
+      GraphLayout.prototype.showHistory = function(e) {
+        console.log('show history');
+        return false;
+      };
+
       return GraphLayout;
 
     })(Backbone.Marionette.Layout);
+
+  }).call(this);
+  
+});
+window.require.register("views/HeaterView", function(exports, require, module) {
+  (function() {
+    var HeaterModel, HeaterView, template,
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    template = require('./templates/heater');
+
+    HeaterModel = require('models/heaterModel');
+
+    module.exports = HeaterView = (function(_super) {
+
+      __extends(HeaterView, _super);
+
+      function HeaterView() {
+        HeaterView.__super__.constructor.apply(this, arguments);
+      }
+
+      HeaterView.prototype.template = template;
+
+      HeaterView.prototype.events = {
+        'click .heaterOverride': 'heaterOverride'
+      };
+
+      HeaterView.prototype.ui = {
+        heaterLight: '.heaterLight',
+        heaterState: '.heaterState'
+      };
+
+      HeaterView.prototype.initialize = function(options) {
+        var modelOptions;
+        this.fermenterId = options.fermenterId;
+        modelOptions = {
+          fermenterId: this.fermenterId
+        };
+        this.model = new HeaterModel(modelOptions);
+      };
+
+      HeaterView.prototype.heaterOverride = function(e) {
+        var newClass, newState, oldClass, oldState;
+        console.log('switching heater state for ' + this.fermenterId);
+        oldState = this.model.get('state');
+        console.log('old state was ' + oldState);
+        newState = 'on';
+        newClass = 'green';
+        oldClass = 'red';
+        if (oldState === 'on') {
+          newState = 'off';
+          newClass = 'red';
+          oldClass = 'green';
+        }
+        this.model.set('state', newState);
+        this.ui.heaterLight.removeClass(oldClass);
+        this.ui.heaterLight.addClass(newClass);
+        this.ui.heaterState.text('Heater ' + newState);
+        return false;
+      };
+
+      return HeaterView;
+
+    })(Backbone.Marionette.ItemView);
 
   }).call(this);
   
@@ -1599,7 +1754,7 @@ window.require.register("views/HomeLayout", function(exports, require, module) {
                   fermenterId: sensor.name,
                   fermenterName: sensor.label,
                   profileName: sensor.name,
-                  heaterState: 'On',
+                  heaterState: 'Off',
                   sampleOptions: [2, 4, 6, 8, 12, 24],
                   sampleRate: 24
                 };
@@ -1948,6 +2103,64 @@ window.require.register("views/ProfilesLayout", function(exports, require, modul
   }).call(this);
   
 });
+window.require.register("views/SampleView", function(exports, require, module) {
+  (function() {
+    var SampleModel, SampleView, template,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    template = require('./templates/sample');
+
+    SampleModel = require('models/sampleModel');
+
+    module.exports = SampleView = (function(_super) {
+
+      __extends(SampleView, _super);
+
+      function SampleView() {
+        this.changeSampleRate = __bind(this.changeSampleRate, this);
+        SampleView.__super__.constructor.apply(this, arguments);
+      }
+
+      SampleView.prototype.template = template;
+
+      SampleView.prototype.ui = {
+        currentSample: '.currentSample'
+      };
+
+      SampleView.prototype.events = {
+        'click .sampleRate': 'changeSampleRate'
+      };
+
+      SampleView.prototype.initialize = function(options) {
+        var modelOptions;
+        this.fermenterId = options.fermenterId;
+        modelOptions = {
+          fermenterId: this.fermenterId
+        };
+        this.model = new SampleModel(modelOptions);
+      };
+
+      SampleView.prototype.changeSampleRate = function(e) {
+        var newRate, unit, value;
+        newRate = $(e.target).text();
+        unit = newRate.substr(newRate.length - 1, 1);
+        value = newRate.substring(0, newRate.indexOf(unit));
+        console.log('set rate to ' + value + ' in unit ' + unit);
+        this.model.set('current', value);
+        this.model.set('unit', unit);
+        this.ui.currentSample.text(newRate);
+        return false;
+      };
+
+      return SampleView;
+
+    })(Backbone.Marionette.ItemView);
+
+  }).call(this);
+  
+});
 window.require.register("views/templates/appLayout", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
@@ -2004,25 +2217,8 @@ window.require.register("views/templates/fermentationStepModal", function(export
 window.require.register("views/templates/graphLayout", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
-    var buffer = "", stack1, stack2, foundHelper, tmp1, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
+    var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
-  function program1(depth0,data) {
-    
-    var buffer = "", stack1;
-    buffer += "\n		<a id=\"sampleRate";
-    stack1 = depth0;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "this", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "\" href=\"/?sample=";
-    stack1 = depth0;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "this", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "\">";
-    stack1 = depth0;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "this", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "H</a> \n	";
-    return buffer;}
 
     buffer += "<div class=\"row\">\n	<div class=\"span9\">\n		<h3>";
     foundHelper = helpers.fermenterName;
@@ -2034,32 +2230,51 @@ window.require.register("views/templates/graphLayout", function(exports, require
     stack1 = foundHelper || depth0.fermenterId;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "_rgn\">\n		</div>\n		<h4>Fermenting: ";
+    buffer += escapeExpression(stack1) + "_graphRegion\"></div>\n		<h4 class=\"activeProfile\">Fermenting: <a class=\"changeProfile\" href=\"#\">";
     foundHelper = helpers.profileName;
     stack1 = foundHelper || depth0.profileName;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "profileName", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</h4>\n		<br />\n		<div>\n			<div id=\"heaterLight\" class=\"red\"></div> <strong>Heater ";
-    foundHelper = helpers.heaterState;
-    stack1 = foundHelper || depth0.heaterState;
+    buffer += escapeExpression(stack1) + "</a></h4>\n		<br />\n		<div id=\"";
+    foundHelper = helpers.fermenterId;
+    stack1 = foundHelper || depth0.fermenterId;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "heaterState", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</strong> <a id=\"heaterOverride\" href=\"#\">[override]</a>\n		</div>\n		<br />\n		<a id=\"fermenterHistory\" class=\"history\" href=\"#\">History...</a>\n	</div>\n</div>\n\n<p>\n	Viewing Last <strong>";
-    foundHelper = helpers.sampleRate;
-    stack1 = foundHelper || depth0.sampleRate;
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "_heaterRegion\"></div>\n		<br />\n		<a id=\"";
+    foundHelper = helpers.fermenterId;
+    stack1 = foundHelper || depth0.fermenterId;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "sampleRate", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "H</strong> \n	[\n	";
-    foundHelper = helpers.sampleOptions;
-    stack1 = foundHelper || depth0.sampleOptions;
-    stack2 = helpers.each;
-    tmp1 = self.program(1, program1, data);
-    tmp1.hash = {};
-    tmp1.fn = tmp1;
-    tmp1.inverse = self.noop;
-    stack1 = stack2.call(depth0, stack1, tmp1);
-    if(stack1 || stack1 === 0) { buffer += stack1; }
-    buffer += "\n	]\n</p>\n";
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "_history\" class=\"history\" href=\"#\">History...</a>\n	</div>\n</div>\n\n<div id=\"";
+    foundHelper = helpers.fermenterId;
+    stack1 = foundHelper || depth0.fermenterId;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "_sampleRegion\"></div>";
+    return buffer;});
+});
+window.require.register("views/templates/heater", function(exports, require, module) {
+  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+    helpers = helpers || Handlebars.helpers;
+    var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
+
+
+    buffer += "<div id=\"";
+    foundHelper = helpers.fermenterId;
+    stack1 = foundHelper || depth0.fermenterId;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "_heaterLight\" class=\"heaterLight red\"></div> <strong class=\"heaterState\">Heater ";
+    foundHelper = helpers.state;
+    stack1 = foundHelper || depth0.state;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "state", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "</strong> <a id=\"";
+    foundHelper = helpers.fermenterId;
+    stack1 = foundHelper || depth0.fermenterId;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "_heaterOverride\" class=\"heaterOverride\" href=\"#\">[override]</a>\n";
     return buffer;});
 });
 window.require.register("views/templates/home", function(exports, require, module) {
@@ -2146,6 +2361,48 @@ window.require.register("views/templates/profilesLayout", function(exports, requ
 
 
     return "<h2>Fermentation Profiles</h2>\n<hr />\n<table id=\"profiles-table\" class=\"table\">\n</table>\n";});
+});
+window.require.register("views/templates/sample", function(exports, require, module) {
+  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+    helpers = helpers || Handlebars.helpers;
+    var buffer = "", stack1, stack2, foundHelper, tmp1, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
+
+  function program1(depth0,data) {
+    
+    var buffer = "", stack1;
+    buffer += "\n		<a id=\"";
+    foundHelper = helpers.fermenterId;
+    stack1 = foundHelper || depth0.fermenterId;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "_sampleRate";
+    stack1 = depth0;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "this", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\" class=\"sampleRate\" href=\"#\">";
+    stack1 = depth0;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "this", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "H</a> \n	";
+    return buffer;}
+
+    buffer += "<p>\n	Viewing Last <strong class=\"currentSample\">";
+    foundHelper = helpers.current;
+    stack1 = foundHelper || depth0.current;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "current", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "H</strong> \n	[\n	";
+    foundHelper = helpers.range;
+    stack1 = foundHelper || depth0.range;
+    stack2 = helpers.each;
+    tmp1 = self.program(1, program1, data);
+    tmp1.hash = {};
+    tmp1.fn = tmp1;
+    tmp1.inverse = self.noop;
+    stack1 = stack2.call(depth0, stack1, tmp1);
+    if(stack1 || stack1 === 0) { buffer += stack1; }
+    buffer += "\n	]\n</p>\n";
+    return buffer;});
 });
 window.require.register("views/templates/step", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
