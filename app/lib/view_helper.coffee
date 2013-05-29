@@ -1,6 +1,4 @@
 # Put your handlebars.js helpers here.
-#application = require 'application'
-
 
 Handlebars.registerHelper 'pick', (val, options) ->
 	return options.hash[val]

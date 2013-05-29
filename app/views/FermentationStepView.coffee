@@ -1,4 +1,3 @@
-application 				= require 'application'
 template 					= require './templates/step'
 FermentationStepModalView 	= require 'views/FermentationStepModalView'
 
@@ -7,6 +6,9 @@ module.exports = class FermentationStepView extends Backbone.Marionette.ItemView
 		events:
 			'click .edit-step': 'editStep'
 			'click .delete-step': 'deleteStep'
+
+		initialize: (options) =>
+			@app = options.application
 
 		editStep: (e) =>
 			options =

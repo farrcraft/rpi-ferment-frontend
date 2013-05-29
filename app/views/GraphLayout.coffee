@@ -44,9 +44,13 @@ module.exports = class GraphLayout extends Backbone.Marionette.Layout
 
 		@renderGraph()
 
+		gpio = @model.get 'gpio'
+
 		options =
 			fermenterId: fermenterId
 			layout: @
+			application: application
+			gpio: gpio
 
 		heaterView = new HeaterView options
 		@heaterRegion.show heaterView

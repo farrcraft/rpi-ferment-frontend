@@ -9,26 +9,29 @@ module.exports = class HeaterView extends Backbone.Marionette.ItemView
 		heaterLight: '.heaterLight'
 		heaterState: '.heaterState'
 
-	initialize: (options) ->
+	initialize: (options) =>
 		@fermenterId = options.fermenterId
+		@app = options.application
 		modelOptions = 
 			fermenterId: @fermenterId
+			gpio: options.gpio
 		@model = new HeaterModel modelOptions
 		return
 
-	heaterOverride: (e) ->
-		console.log 'switching heater state for ' + @fermenterId
+	heaterOverride: (e) =>
 		oldState = @model.get 'state'
-		console.log 'old state was ' + oldState
 		newState = 'on'
 		newClass = 'green'
 		oldClass = 'red'
+		value = true
 		if oldState is 'on'
 			newState = 'off'
 			newClass = 'red'
 			oldClass = 'green'
+			value = false
 		@model.set 'state', newState
 		@ui.heaterLight.removeClass oldClass
 		@ui.heaterLight.addClass newClass
 		@ui.heaterState.text 'Heater ' + newState
+		@app.controller_.socket_.emit 'setgpio', @fermenterId, value
 		false

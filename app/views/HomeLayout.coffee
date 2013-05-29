@@ -1,15 +1,15 @@
 GraphCollectionView = require 'views/GraphCollectionView'
-GraphCollection = require 'models/graphCollection'
-GraphModel = require 'models/graphModel'
-application = require 'application'
+GraphCollection 	= require 'models/graphCollection'
+GraphModel 			= require 'models/graphModel'
 
 module.exports = class HomeLayout extends Backbone.Marionette.Layout
 	template: require('views/templates/homeLayout')
 
-	initialize: () =>
+	initialize: (options) =>
 		@graphRegion = @addRegion 'graphs', '#graphs'
+		@app = options.application
 
-		application.vent.on 'Socket:Config', (config) =>
+		@app.vent.on 'Socket:Config', (config) =>
 			@createCollection config
 
 	createCollection: (config) =>
@@ -19,6 +19,7 @@ module.exports = class HomeLayout extends Backbone.Marionette.Layout
 
 				options = 
 					sample: 24
+					gpio: sensor.gpio
 					sensorName: sensor.name
 					sensorLabel: sensor.label
 					fermenterId: sensor.name

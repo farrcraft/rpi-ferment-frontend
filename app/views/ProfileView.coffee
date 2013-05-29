@@ -31,7 +31,7 @@ module.exports = class ProfileView extends Backbone.Marionette.CompositeView
 			options =
 				profile: @model
 				application: application
-			modal = new FermentationStepModalView(options)
+			modal = new FermentationStepModalView options
 			application.layout.modal.show modal
 
 		editProfile: (e) =>

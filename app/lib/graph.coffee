@@ -22,9 +22,13 @@ module.exports = class Graph
 			refresh_interval: 10000
 		ts = new Graphene.TimeSeries(model_opts)
 
+		# [TODO] - graph ymin should be configurable
+		ymin = 59
+		#ymin = @graphene_.getUrlParam sourceUrl, "yMin"
+
 		opts = 
 			model: ts
-			ymin: @graphene_.getUrlParam sourceUrl, "yMin"
+			ymin: ymin
 			ymax: @graphene_.getUrlParam sourceUrl, "yMax"
 		view = new Graphene.TimeSeriesView(_.extend(opts, desc))
 		ts.start()

@@ -24,3 +24,19 @@ module.exports = class ProfileController extends Backbone.Marionette.Controller
 				model: model
 			modal = new ProfileModalView(options)
 			@app.layout.modal.show modal
+
+	setupSockets: =>
+		@socket_ = io.connect 'http://graphite:6001'
+		@socket_.on 'config', (config) =>
+			@config_ = config
+			@app.vent.trigger 'Socket:Config', config
+		@socket_.on 'pv', (data) =>
+			@app.vent.trigger 'Socket:PV'
+			console.log 'new pv'
+		@socket_.on 'sv', (data) =>
+			@app.vent.trigger 'Socket:SV'
+			console.log 'new sv'
+		@socket_.on 'mode', (data) =>
+			@app.vent.trigger 'Socket:Mode', data
+
+		@socket_.emit 'config'

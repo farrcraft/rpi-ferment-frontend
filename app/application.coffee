@@ -8,13 +8,12 @@ class Application extends Backbone.Marionette.Application
 
     initialize: =>
         @graph_ = new Graph()
-        @socket_ = io.connect 'http://graphite:6001'
 
         @on("initialize:after", (options) =>
             options = 
                 application: @
             @controller_ = new ProfileController(options)
-            @setupSockets()
+            @controller_.setupSockets()
 
             Backbone.history.start();
             # Freeze the object
@@ -27,7 +26,9 @@ class Application extends Backbone.Marionette.Application
         @addInitializer( (options) =>
 
             AppLayout = require 'views/AppLayout'
-            @layout = new AppLayout()
+            options =
+                application: @
+            @layout = new AppLayout options
             @layout.render()
         )
 
@@ -38,23 +39,6 @@ class Application extends Backbone.Marionette.Application
         )
 
         @start()
-
-    setupSockets: =>
-        @socket_.on 'config', (config) =>
-            @controller_.config_ = config
-            @vent.trigger 'Socket:Config', config
-        @socket_.on 'pv', (data) =>
-            @vent.trigger 'Socket:PV'
-            console.log 'new pv'
-        @socket_.on 'sv', (data) =>
-            @vent.trigger 'Socket:SV'
-            console.log 'new sv'
-        @socket_.on 'mode', (data) =>
-            @vent.trigger 'Socket:Mode', config
-
-        @socket_.emit 'config'
-
-
 
 
 module.exports = new Application()

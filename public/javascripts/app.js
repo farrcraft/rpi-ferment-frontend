@@ -97,7 +97,6 @@ window.require.register("application", function(exports, require, module) {
       __extends(Application, _super);
 
       function Application() {
-        this.setupSockets = __bind(this.setupSockets, this);
         this.initialize = __bind(this.initialize, this);
         Application.__super__.constructor.apply(this, arguments);
       }
@@ -109,13 +108,12 @@ window.require.register("application", function(exports, require, module) {
       Application.prototype.initialize = function() {
         var _this = this;
         this.graph_ = new Graph();
-        this.socket_ = io.connect('http://graphite:6001');
         this.on("initialize:after", function(options) {
           options = {
             application: _this
           };
           _this.controller_ = new ProfileController(options);
-          _this.setupSockets();
+          _this.controller_.setupSockets();
           Backbone.history.start();
           return typeof Object.freeze === "function" ? Object.freeze(_this) : void 0;
         });
@@ -123,7 +121,10 @@ window.require.register("application", function(exports, require, module) {
         this.addInitializer(function(options) {
           var AppLayout;
           AppLayout = require('views/AppLayout');
-          _this.layout = new AppLayout();
+          options = {
+            application: _this
+          };
+          _this.layout = new AppLayout(options);
           return _this.layout.render();
         });
         this.addInitializer(function(options) {
@@ -132,26 +133,6 @@ window.require.register("application", function(exports, require, module) {
           return _this.router = new Router();
         });
         return this.start();
-      };
-
-      Application.prototype.setupSockets = function() {
-        var _this = this;
-        this.socket_.on('config', function(config) {
-          _this.controller_.config_ = config;
-          return _this.vent.trigger('Socket:Config', config);
-        });
-        this.socket_.on('pv', function(data) {
-          _this.vent.trigger('Socket:PV');
-          return console.log('new pv');
-        });
-        this.socket_.on('sv', function(data) {
-          _this.vent.trigger('Socket:SV');
-          return console.log('new sv');
-        });
-        this.socket_.on('mode', function(data) {
-          return _this.vent.trigger('Socket:Mode', config);
-        });
-        return this.socket_.emit('config');
       };
 
       return Application;
@@ -181,6 +162,7 @@ window.require.register("controllers/profile", function(exports, require, module
       __extends(ProfileController, _super);
 
       function ProfileController() {
+        this.setupSockets = __bind(this.setupSockets, this);
         this.initialize = __bind(this.initialize, this);
         ProfileController.__super__.constructor.apply(this, arguments);
       }
@@ -209,6 +191,27 @@ window.require.register("controllers/profile", function(exports, require, module
           modal = new ProfileModalView(options);
           return _this.app.layout.modal.show(modal);
         });
+      };
+
+      ProfileController.prototype.setupSockets = function() {
+        var _this = this;
+        this.socket_ = io.connect('http://graphite:6001');
+        this.socket_.on('config', function(config) {
+          _this.config_ = config;
+          return _this.app.vent.trigger('Socket:Config', config);
+        });
+        this.socket_.on('pv', function(data) {
+          _this.app.vent.trigger('Socket:PV');
+          return console.log('new pv');
+        });
+        this.socket_.on('sv', function(data) {
+          _this.app.vent.trigger('Socket:SV');
+          return console.log('new sv');
+        });
+        this.socket_.on('mode', function(data) {
+          return _this.app.vent.trigger('Socket:Mode', data);
+        });
+        return this.socket_.emit('config');
       };
 
       return ProfileController;
@@ -253,7 +256,7 @@ window.require.register("lib/graph", function(exports, require, module) {
       }
 
       Graph.prototype.createView = function(name, gauge, sample) {
-        var desc, div, model_opts, opts, sampleRange, sourceUrl, targets, ts, view;
+        var desc, div, model_opts, opts, sampleRange, sourceUrl, targets, ts, view, ymin;
         sampleRange = name + '&from=-' + sample + 'hours&until=now';
         targets = 'target=stats.gauges.' + gauge + '&target=stats.gauges.ambient';
         sourceUrl = this.graphiteUrl_ + '/render?' + targets + '&title=' + sampleRange + '&format=json';
@@ -264,9 +267,10 @@ window.require.register("lib/graph", function(exports, require, module) {
           refresh_interval: 10000
         };
         ts = new Graphene.TimeSeries(model_opts);
+        ymin = 59;
         opts = {
           model: ts,
-          ymin: this.graphene_.getUrlParam(sourceUrl, "yMin"),
+          ymin: ymin,
           ymax: this.graphene_.getUrlParam(sourceUrl, "yMax")
         };
         view = new Graphene.TimeSeriesView(_.extend(opts, desc));
@@ -1019,12 +1023,10 @@ window.require.register("lib/graphene", function(exports, require, module) {
 });
 window.require.register("lib/router", function(exports, require, module) {
   (function() {
-    var HomeLayout, ProfilesLayout, Router, application,
+    var HomeLayout, ProfilesLayout, Router,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-    application = require('application');
 
     HomeLayout = require('views/HomeLayout');
 
@@ -1046,23 +1048,26 @@ window.require.register("lib/router", function(exports, require, module) {
       };
 
       Router.prototype.home = function() {
-        var home;
-        home = new HomeLayout();
-        application.layout.content.close();
-        application.layout.content.show(home);
-        if (application.controller_.config_ !== void 0) {
-          return home.createCollection(application.controller_.config_);
+        var home, options;
+        options = {
+          application: window.RpiApp
+        };
+        home = new HomeLayout(options);
+        window.RpiApp.layout.content.close();
+        window.RpiApp.layout.content.show(home);
+        if (window.RpiApp.controller_.config_ !== void 0) {
+          return home.createCollection(window.RpiApp.controller_.config_);
         }
       };
 
       Router.prototype.profiles = function() {
         var options, profiles;
         options = {
-          application: application
+          application: window.RpiApp
         };
         profiles = new ProfilesLayout(options);
-        application.layout.content.close();
-        application.layout.content.show(profiles);
+        window.RpiApp.layout.content.close();
+        window.RpiApp.layout.content.show(profiles);
         return profiles.showProfiles();
       };
 
@@ -1384,11 +1389,9 @@ window.require.register("models/stepModel", function(exports, require, module) {
 });
 window.require.register("views/AppLayout", function(exports, require, module) {
   (function() {
-    var AppLayout, ModalRegion, application, template,
+    var AppLayout, ModalRegion, template,
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-    application = require('application');
 
     ModalRegion = require('views/ModalRegion');
 
@@ -1484,12 +1487,10 @@ window.require.register("views/FermentationStepModalView", function(exports, req
 });
 window.require.register("views/FermentationStepView", function(exports, require, module) {
   (function() {
-    var FermentationStepModalView, FermentationStepView, application, template,
+    var FermentationStepModalView, FermentationStepView, template,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-    application = require('application');
 
     template = require('./templates/step');
 
@@ -1502,6 +1503,7 @@ window.require.register("views/FermentationStepView", function(exports, require,
       function FermentationStepView() {
         this.deleteStep = __bind(this.deleteStep, this);
         this.editStep = __bind(this.editStep, this);
+        this.initialize = __bind(this.initialize, this);
         FermentationStepView.__super__.constructor.apply(this, arguments);
       }
 
@@ -1510,6 +1512,10 @@ window.require.register("views/FermentationStepView", function(exports, require,
       FermentationStepView.prototype.events = {
         'click .edit-step': 'editStep',
         'click .delete-step': 'deleteStep'
+      };
+
+      FermentationStepView.prototype.initialize = function(options) {
+        return this.app = options.application;
       };
 
       FermentationStepView.prototype.editStep = function(e) {
@@ -1638,7 +1644,7 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
       };
 
       GraphLayout.prototype.onRender = function() {
-        var fermenterId, graphRegionId, heaterRegionId, heaterView, options, profile, sampleRegionId, sampleView;
+        var fermenterId, gpio, graphRegionId, heaterRegionId, heaterView, options, profile, sampleRegionId, sampleView;
         fermenterId = this.model.get('fermenterId');
         graphRegionId = fermenterId + '_graphRegion';
         sampleRegionId = fermenterId + '_sampleRegion';
@@ -1647,9 +1653,12 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
         this.sampleRegion = this.addRegion(sampleRegionId, '#' + sampleRegionId);
         this.heaterRegion = this.addRegion(heaterRegionId, '#' + heaterRegionId);
         this.renderGraph();
+        gpio = this.model.get('gpio');
         options = {
           fermenterId: fermenterId,
-          layout: this
+          layout: this,
+          application: application,
+          gpio: gpio
         };
         heaterView = new HeaterView(options);
         this.heaterRegion.show(heaterView);
@@ -1701,6 +1710,7 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
 window.require.register("views/HeaterView", function(exports, require, module) {
   (function() {
     var HeaterModel, HeaterView, template,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
@@ -1713,6 +1723,8 @@ window.require.register("views/HeaterView", function(exports, require, module) {
       __extends(HeaterView, _super);
 
       function HeaterView() {
+        this.heaterOverride = __bind(this.heaterOverride, this);
+        this.initialize = __bind(this.initialize, this);
         HeaterView.__super__.constructor.apply(this, arguments);
       }
 
@@ -1730,29 +1742,32 @@ window.require.register("views/HeaterView", function(exports, require, module) {
       HeaterView.prototype.initialize = function(options) {
         var modelOptions;
         this.fermenterId = options.fermenterId;
+        this.app = options.application;
         modelOptions = {
-          fermenterId: this.fermenterId
+          fermenterId: this.fermenterId,
+          gpio: options.gpio
         };
         this.model = new HeaterModel(modelOptions);
       };
 
       HeaterView.prototype.heaterOverride = function(e) {
-        var newClass, newState, oldClass, oldState;
-        console.log('switching heater state for ' + this.fermenterId);
+        var newClass, newState, oldClass, oldState, value;
         oldState = this.model.get('state');
-        console.log('old state was ' + oldState);
         newState = 'on';
         newClass = 'green';
         oldClass = 'red';
+        value = true;
         if (oldState === 'on') {
           newState = 'off';
           newClass = 'red';
           oldClass = 'green';
+          value = false;
         }
         this.model.set('state', newState);
         this.ui.heaterLight.removeClass(oldClass);
         this.ui.heaterLight.addClass(newClass);
         this.ui.heaterState.text('Heater ' + newState);
+        this.app.controller_.socket_.emit('setgpio', this.fermenterId, value);
         return false;
       };
 
@@ -1765,7 +1780,7 @@ window.require.register("views/HeaterView", function(exports, require, module) {
 });
 window.require.register("views/HomeLayout", function(exports, require, module) {
   (function() {
-    var GraphCollection, GraphCollectionView, GraphModel, HomeLayout, application,
+    var GraphCollection, GraphCollectionView, GraphModel, HomeLayout,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
@@ -1775,8 +1790,6 @@ window.require.register("views/HomeLayout", function(exports, require, module) {
     GraphCollection = require('models/graphCollection');
 
     GraphModel = require('models/graphModel');
-
-    application = require('application');
 
     module.exports = HomeLayout = (function(_super) {
 
@@ -1790,10 +1803,11 @@ window.require.register("views/HomeLayout", function(exports, require, module) {
 
       HomeLayout.prototype.template = require('views/templates/homeLayout');
 
-      HomeLayout.prototype.initialize = function() {
+      HomeLayout.prototype.initialize = function(options) {
         var _this = this;
         this.graphRegion = this.addRegion('graphs', '#graphs');
-        return application.vent.on('Socket:Config', function(config) {
+        this.app = options.application;
+        return this.app.vent.on('Socket:Config', function(config) {
           return _this.createCollection(config);
         });
       };
@@ -1810,6 +1824,7 @@ window.require.register("views/HomeLayout", function(exports, require, module) {
             if (sensor.type === 'fermenter') {
               options = {
                 sample: 24,
+                gpio: sensor.gpio,
                 sensorName: sensor.name,
                 sensorLabel: sensor.label,
                 fermenterId: sensor.name,
@@ -1915,14 +1930,12 @@ window.require.register("views/ModalRegion", function(exports, require, module) 
 });
 window.require.register("views/ProfileCollectionView", function(exports, require, module) {
   (function() {
-    var ProfileCollectionView, ProfileView, application,
+    var ProfileCollectionView, ProfileView,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
     ProfileView = require('views/ProfileView');
-
-    application = require('application');
 
     module.exports = ProfileCollectionView = (function(_super) {
 
@@ -1937,9 +1950,10 @@ window.require.register("views/ProfileCollectionView", function(exports, require
 
       ProfileCollectionView.prototype.itemView = ProfileView;
 
-      ProfileCollectionView.prototype.initialize = function() {
+      ProfileCollectionView.prototype.initialize = function(options) {
         var _this = this;
-        return application.vent.on('Profile:Modified', function() {
+        this.app = options.application;
+        return this.app.vent.on('Profile:Modified', function() {
           return _this.collection.fetch({
             add: true,
             success: function() {
@@ -2148,10 +2162,12 @@ window.require.register("views/ProfilesLayout", function(exports, require, modul
       };
 
       ProfilesLayout.prototype.showProfiles = function() {
-        var view;
-        view = new ProfileCollectionView({
+        var options, view;
+        options = {
+          application: this.app,
           collection: this.app.controller_.profiles_
-        });
+        };
+        view = new ProfileCollectionView(options);
         this.profiles.close();
         return this.profiles.show(view);
       };

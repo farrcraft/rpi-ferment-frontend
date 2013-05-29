@@ -1,6 +1,5 @@
-application = require('application')
-HomeLayout = require('views/HomeLayout')
-ProfilesLayout = require('views/ProfilesLayout')
+HomeLayout 		= require 'views/HomeLayout'
+ProfilesLayout 	= require 'views/ProfilesLayout'
 
 module.exports = class Router extends Backbone.Router
 
@@ -9,16 +8,18 @@ module.exports = class Router extends Backbone.Router
 		'profiles': 'profiles'
 
 	home: =>
-		home = new HomeLayout()
-		application.layout.content.close()
-		application.layout.content.show home
-		if application.controller_.config_ isnt undefined
-			home.createCollection application.controller_.config_
+		options =
+			application: window.RpiApp
+		home = new HomeLayout options
+		window.RpiApp.layout.content.close()
+		window.RpiApp.layout.content.show home
+		if window.RpiApp.controller_.config_ isnt undefined
+			home.createCollection window.RpiApp.controller_.config_
 
 	profiles: =>
 		options = 
-			application: application
+			application: window.RpiApp
 		profiles = new ProfilesLayout options
-		application.layout.content.close()
-		application.layout.content.show profiles
+		window.RpiApp.layout.content.close()
+		window.RpiApp.layout.content.show profiles
 		profiles.showProfiles()

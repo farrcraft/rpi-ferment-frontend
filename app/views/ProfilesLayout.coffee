@@ -14,6 +14,9 @@ module.exports = class ProfilesLayout extends Backbone.Marionette.Layout
 			@showProfiles()
 
 	showProfiles: () =>
-		view = new ProfileCollectionView { collection: @app.controller_.profiles_ }
+		options =
+			application: @app
+			collection: @app.controller_.profiles_
+		view = new ProfileCollectionView options
 		@profiles.close()
 		@profiles.show view
