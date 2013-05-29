@@ -7,13 +7,29 @@ module.exports = class GraphLayout extends Backbone.Marionette.Layout
 
 	events:
 		'click .changeProfile': 'changeProfile'
+		'click .editProfile': 'editProfile'
 		'click .history': 'showHistory'
 
 	ui:
-		profileLabel: '.changeProfile'
+		profileLabel: '.activeProfile'
+		profileButton: '.changeProfile'
+		editButton: '.editProfile'
+
 
 	initialize: (options) =>
+		application.vent.on 'Profiles:Loaded', @updateProfileData
+
+		application.controller_.profiles_.each (profile) =>
+			sensor = profile.get 'sensor'
+			fermenterId = @model.get 'fermenterId'
+			active = @model.get 'active'
+			if sensor is fermenterId and active is true
+				@model.set 'profile', profile
+				@model.set 'profileName', profile.get 'name'
 		return
+
+	updateProfileData: () =>
+		console.log 'update profile data'
 
 	onRender: () =>
 		fermenterId = @model.get 'fermenterId'
@@ -41,11 +57,19 @@ module.exports = class GraphLayout extends Backbone.Marionette.Layout
 		sampleView = new SampleView options
 		@sampleRegion.show sampleView
 
+		profile = @model.get 'profile'
+		if profile is undefined
+			@ui.editButton.hide()
+			@ui.profileButton.text '[set profile]'
 		return
 
 	onClose: () =>
 		@graphView.model.stop()
 		return
+
+	editProfile: (e) =>
+		console.log 'edit profile'
+		false
 
 	changeProfile: (e) =>
 		console.log 'change profile'

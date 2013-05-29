@@ -1049,7 +1049,10 @@ window.require.register("lib/router", function(exports, require, module) {
         var home;
         home = new HomeLayout();
         application.layout.content.close();
-        return application.layout.content.show(home);
+        application.layout.content.show(home);
+        if (application.controller_.config_ !== void 0) {
+          return home.createCollection(application.controller_.config_);
+        }
       };
 
       Router.prototype.profiles = function() {
@@ -1592,8 +1595,10 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
       function GraphLayout() {
         this.showHistory = __bind(this.showHistory, this);
         this.changeProfile = __bind(this.changeProfile, this);
+        this.editProfile = __bind(this.editProfile, this);
         this.onClose = __bind(this.onClose, this);
         this.onRender = __bind(this.onRender, this);
+        this.updateProfileData = __bind(this.updateProfileData, this);
         this.initialize = __bind(this.initialize, this);
         GraphLayout.__super__.constructor.apply(this, arguments);
       }
@@ -1602,17 +1607,37 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
 
       GraphLayout.prototype.events = {
         'click .changeProfile': 'changeProfile',
+        'click .editProfile': 'editProfile',
         'click .history': 'showHistory'
       };
 
       GraphLayout.prototype.ui = {
-        profileLabel: '.changeProfile'
+        profileLabel: '.activeProfile',
+        profileButton: '.changeProfile',
+        editButton: '.editProfile'
       };
 
-      GraphLayout.prototype.initialize = function(options) {};
+      GraphLayout.prototype.initialize = function(options) {
+        var _this = this;
+        application.vent.on('Profiles:Loaded', this.updateProfileData);
+        application.controller_.profiles_.each(function(profile) {
+          var active, fermenterId, sensor;
+          sensor = profile.get('sensor');
+          fermenterId = _this.model.get('fermenterId');
+          active = _this.model.get('active');
+          if (sensor === fermenterId && active === true) {
+            _this.model.set('profile', profile);
+            return _this.model.set('profileName', profile.get('name'));
+          }
+        });
+      };
+
+      GraphLayout.prototype.updateProfileData = function() {
+        return console.log('update profile data');
+      };
 
       GraphLayout.prototype.onRender = function() {
-        var el, fermenterId, graphRegionId, heaterRegionId, heaterView, options, sample, sampleRegionId, sampleView;
+        var el, fermenterId, graphRegionId, heaterRegionId, heaterView, options, profile, sample, sampleRegionId, sampleView;
         fermenterId = this.model.get('fermenterId');
         graphRegionId = fermenterId + '_graphRegion';
         sampleRegionId = fermenterId + '_sampleRegion';
@@ -1632,10 +1657,20 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
         this.heaterRegion.show(heaterView);
         sampleView = new SampleView(options);
         this.sampleRegion.show(sampleView);
+        profile = this.model.get('profile');
+        if (profile === void 0) {
+          this.ui.editButton.hide();
+          this.ui.profileButton.text('[set profile]');
+        }
       };
 
       GraphLayout.prototype.onClose = function() {
         this.graphView.model.stop();
+      };
+
+      GraphLayout.prototype.editProfile = function(e) {
+        console.log('edit profile');
+        return false;
       };
 
       GraphLayout.prototype.changeProfile = function(e) {
@@ -1740,6 +1775,7 @@ window.require.register("views/HomeLayout", function(exports, require, module) {
       __extends(HomeLayout, _super);
 
       function HomeLayout() {
+        this.createCollection = __bind(this.createCollection, this);
         this.initialize = __bind(this.initialize, this);
         HomeLayout.__super__.constructor.apply(this, arguments);
       }
@@ -1747,44 +1783,47 @@ window.require.register("views/HomeLayout", function(exports, require, module) {
       HomeLayout.prototype.template = require('views/templates/homeLayout');
 
       HomeLayout.prototype.initialize = function() {
-        var graphRegion,
-          _this = this;
-        graphRegion = this.addRegion('graphs', '#graphs');
+        var _this = this;
+        this.graphRegion = this.addRegion('graphs', '#graphs');
         return application.vent.on('Socket:Config', function(config) {
-          var collection, model, models, options, sensor, view;
-          models = [];
-          sensor = (function() {
-            var _i, _len, _ref, _results;
-            _ref = config.sensors;
-            _results = [];
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-              sensor = _ref[_i];
-              if (sensor.type === 'fermenter') {
-                options = {
-                  sample: 24,
-                  sensorName: sensor.name,
-                  sensorLabel: sensor.label,
-                  fermenterId: sensor.name,
-                  fermenterName: sensor.label,
-                  profileName: sensor.name,
-                  heaterState: 'Off',
-                  sampleOptions: [2, 4, 6, 8, 12, 24],
-                  sampleRate: 24
-                };
-                model = new GraphModel(options);
-                _results.push(models.push(model));
-              } else {
-                _results.push(void 0);
-              }
-            }
-            return _results;
-          })();
-          collection = new GraphCollection(models);
-          view = new GraphCollectionView({
-            collection: collection
-          });
-          return graphRegion.show(view);
+          return _this.createCollection(config);
         });
+      };
+
+      HomeLayout.prototype.createCollection = function(config) {
+        var collection, model, models, options, sensor, view;
+        models = [];
+        sensor = (function() {
+          var _i, _len, _ref, _results;
+          _ref = config.sensors;
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            sensor = _ref[_i];
+            if (sensor.type === 'fermenter') {
+              options = {
+                sample: 24,
+                sensorName: sensor.name,
+                sensorLabel: sensor.label,
+                fermenterId: sensor.name,
+                fermenterName: sensor.label,
+                profileName: sensor.name,
+                heaterState: 'Off',
+                sampleOptions: [2, 4, 6, 8, 12, 24],
+                sampleRate: 24
+              };
+              model = new GraphModel(options);
+              _results.push(models.push(model));
+            } else {
+              _results.push(void 0);
+            }
+          }
+          return _results;
+        })();
+        collection = new GraphCollection(models);
+        view = new GraphCollectionView({
+          collection: collection
+        });
+        return this.graphRegion.show(view);
       };
 
       return HomeLayout;
@@ -2243,12 +2282,12 @@ window.require.register("views/templates/graphLayout", function(exports, require
     stack1 = foundHelper || depth0.fermenterId;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "_graphRegion\"></div>\n		<h4 class=\"activeProfile\">Fermenting: <a class=\"changeProfile\" href=\"#\">";
+    buffer += escapeExpression(stack1) + "_graphRegion\"></div>\n		<h4 class=\"activeProfile\">Fermenting: ";
     foundHelper = helpers.profileName;
     stack1 = foundHelper || depth0.profileName;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "profileName", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</a></h4>\n		<br />\n		<div id=\"";
+    buffer += escapeExpression(stack1) + "</h4>\n		<div>\n			<a class=\"editProfile\" href=\"#\">[edit profile]</a>\n			<a class=\"changeProfile\" href=\"#\">[change profile]</a>\n		</div>\n		<br />\n		<div id=\"";
     foundHelper = helpers.fermenterId;
     stack1 = foundHelper || depth0.fermenterId;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }

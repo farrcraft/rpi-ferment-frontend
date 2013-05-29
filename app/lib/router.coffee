@@ -12,6 +12,8 @@ module.exports = class Router extends Backbone.Router
 		home = new HomeLayout()
 		application.layout.content.close()
 		application.layout.content.show home
+		if application.controller_.config_ isnt undefined
+			home.createCollection application.controller_.config_
 
 	profiles: =>
 		options = 
