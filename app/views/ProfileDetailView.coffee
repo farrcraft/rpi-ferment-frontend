@@ -1,7 +1,6 @@
 # rpi-ferment-frontend
 # Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
 
-application 				= require 'application'
 template 					= require './templates/profileDetail'
 ProfileModalView 			= require 'views/ProfileModalView'
 FermentationStepModalView 	= require 'views/FermentationStepModalView'
@@ -17,8 +16,23 @@ module.exports = class ProfileDetailView extends Backbone.Marionette.CompositeVi
 
 		itemView: FermentationStepView
 		itemViewContainer: '#steps'
+		itemViewOptions: (model, index) ->
+			options =
+				application: @app
+			options
 
 		initialize: (options) =>
+			@app = options.application
+			@loadSteps()
+
+			@app.vent.on 'Profile:Modified', () =>
+				@model.fetch
+					success: () =>
+						@app.controller_.profiles_.fetch()
+						@loadSteps()
+						@render()
+
+		loadSteps: () ->
 			@collection = new StepCollection()
 			steps = @model.get 'steps'
 			if steps isnt undefined
@@ -27,18 +41,17 @@ module.exports = class ProfileDetailView extends Backbone.Marionette.CompositeVi
 					model.set 'profile', @model
 					@collection.add model
 
-
 		addStep: (e) ->
 			options =
 				profile: @model
-				application: application
+				application: @app
 			modal = new FermentationStepModalView options
-			application.layout.modal.show modal
+			@app.layout.modal.show modal
 
 		editProfile: (e) =>
 			options =
 				model: @model
-				application: application
+				application: @app
 			modal = new ProfileModalView(options)
-			application.layout.modal.show modal
+			@app.layout.modal.show modal
 			false

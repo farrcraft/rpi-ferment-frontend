@@ -12,7 +12,6 @@ FermentationStepView 		= require 'views/FermentationStepView'
 module.exports = class ProfileView extends Backbone.Marionette.CompositeView
 		template: template
 		events:
-			'click .add-step': 'addStep'
 			'click .edit': 'editProfile'
 			'click .delete': 'deleteProfile'
 			'click .activate': 'activateProfile'
@@ -20,18 +19,8 @@ module.exports = class ProfileView extends Backbone.Marionette.CompositeView
 		ui:
 			activateButton: '.activate'
 
-		itemView: FermentationStepView
-		itemViewContainer: '#steps'
-
 		initialize: (options) =>
-			@collection = new StepCollection()
-			steps = @model.get 'steps'
-			if steps isnt undefined
-				step = for step in steps
-					model = new StepModel step
-					model.set 'profile', @model
-					@collection.add model
-
+			return
 
 		onRender: () ->
 			state = @model.get 'active'
@@ -51,13 +40,6 @@ module.exports = class ProfileView extends Backbone.Marionette.CompositeView
 			id = @model.get '_id'
 			application.controller_.activateProfile id, newState
 			false
-
-		addStep: (e) ->
-			options =
-				profile: @model
-				application: application
-			modal = new FermentationStepModalView options
-			application.layout.modal.show modal
 
 		editProfile: (e) =>
 			options =

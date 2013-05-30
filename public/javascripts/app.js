@@ -1065,7 +1065,7 @@ window.require.register("lib/graphene", function(exports, require, module) {
 });
 window.require.register("lib/router", function(exports, require, module) {
   (function() {
-    var HomeLayout, ProfilesLayout, Router,
+    var HomeLayout, ProfileDetailView, ProfileModel, ProfilesLayout, Router,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
@@ -1073,6 +1073,10 @@ window.require.register("lib/router", function(exports, require, module) {
     HomeLayout = require('views/HomeLayout');
 
     ProfilesLayout = require('views/ProfilesLayout');
+
+    ProfileDetailView = require('views/ProfileDetailView');
+
+    ProfileModel = require('models/profileModel');
 
     module.exports = Router = (function(_super) {
 
@@ -1087,7 +1091,8 @@ window.require.register("lib/router", function(exports, require, module) {
 
       Router.prototype.routes = {
         '': 'home',
-        'profiles': 'profiles'
+        'profiles': 'profiles',
+        'profile/:id': 'profile'
       };
 
       Router.prototype.home = function() {
@@ -1114,7 +1119,26 @@ window.require.register("lib/router", function(exports, require, module) {
         return profiles.showProfiles();
       };
 
-      Router.prototype.profile = function(id) {};
+      Router.prototype.profile = function(id) {
+        var fetchSuccessHandler, model,
+          _this = this;
+        model = new ProfileModel({
+          _id: id
+        });
+        fetchSuccessHandler = function(profile, res, opts) {
+          var options, view;
+          options = {
+            application: window.RpiApp,
+            model: profile
+          };
+          view = new ProfileDetailView(options);
+          window.RpiApp.layout.content.close();
+          return window.RpiApp.layout.content.show(view);
+        };
+        model.fetch({
+          success: fetchSuccessHandler
+        });
+      };
 
       return Router;
 
@@ -1573,10 +1597,10 @@ window.require.register("views/FermentationStepView", function(exports, require,
         options = {
           profile: this.model.get('profile'),
           model: this.model,
-          application: application
+          application: this.app
         };
         modal = new FermentationStepModalView(options);
-        application.layout.modal.show(modal);
+        this.app.layout.modal.show(modal);
         return false;
       };
 
@@ -1589,7 +1613,7 @@ window.require.register("views/FermentationStepView", function(exports, require,
         steps.splice(position - 1, 1);
         profile.set('steps', steps);
         profile.once('sync', function() {
-          return application.vent.trigger('Profile:Modified');
+          return _this.app.vent.trigger('Profile:Modified');
         });
         profile.save();
         return false;
@@ -2034,12 +2058,10 @@ window.require.register("views/ProfileCollectionView", function(exports, require
 });
 window.require.register("views/ProfileDetailView", function(exports, require, module) {
   (function() {
-    var FermentationStepModalView, FermentationStepView, ProfileDetailView, ProfileModalView, StepCollection, StepModel, application, template,
+    var FermentationStepModalView, FermentationStepView, ProfileDetailView, ProfileModalView, StepCollection, StepModel, template,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-    application = require('application');
 
     template = require('./templates/profileDetail');
 
@@ -2074,7 +2096,30 @@ window.require.register("views/ProfileDetailView", function(exports, require, mo
 
       ProfileDetailView.prototype.itemViewContainer = '#steps';
 
+      ProfileDetailView.prototype.itemViewOptions = function(model, index) {
+        var options;
+        options = {
+          application: this.app
+        };
+        return options;
+      };
+
       ProfileDetailView.prototype.initialize = function(options) {
+        var _this = this;
+        this.app = options.application;
+        this.loadSteps();
+        return this.app.vent.on('Profile:Modified', function() {
+          return _this.model.fetch({
+            success: function() {
+              _this.app.controller_.profiles_.fetch();
+              _this.loadSteps();
+              return _this.render();
+            }
+          });
+        });
+      };
+
+      ProfileDetailView.prototype.loadSteps = function() {
         var model, step, steps;
         this.collection = new StepCollection();
         steps = this.model.get('steps');
@@ -2097,20 +2142,20 @@ window.require.register("views/ProfileDetailView", function(exports, require, mo
         var modal, options;
         options = {
           profile: this.model,
-          application: application
+          application: this.app
         };
         modal = new FermentationStepModalView(options);
-        return application.layout.modal.show(modal);
+        return this.app.layout.modal.show(modal);
       };
 
       ProfileDetailView.prototype.editProfile = function(e) {
         var modal, options;
         options = {
           model: this.model,
-          application: application
+          application: this.app
         };
         modal = new ProfileModalView(options);
-        application.layout.modal.show(modal);
+        this.app.layout.modal.show(modal);
         return false;
       };
 
@@ -2212,7 +2257,6 @@ window.require.register("views/ProfileView", function(exports, require, module) 
       ProfileView.prototype.template = template;
 
       ProfileView.prototype.events = {
-        'click .add-step': 'addStep',
         'click .edit': 'editProfile',
         'click .delete': 'deleteProfile',
         'click .activate': 'activateProfile'
@@ -2222,28 +2266,7 @@ window.require.register("views/ProfileView", function(exports, require, module) 
         activateButton: '.activate'
       };
 
-      ProfileView.prototype.itemView = FermentationStepView;
-
-      ProfileView.prototype.itemViewContainer = '#steps';
-
-      ProfileView.prototype.initialize = function(options) {
-        var model, step, steps;
-        this.collection = new StepCollection();
-        steps = this.model.get('steps');
-        if (steps !== void 0) {
-          return step = (function() {
-            var _i, _len, _results;
-            _results = [];
-            for (_i = 0, _len = steps.length; _i < _len; _i++) {
-              step = steps[_i];
-              model = new StepModel(step);
-              model.set('profile', this.model);
-              _results.push(this.collection.add(model));
-            }
-            return _results;
-          }).call(this);
-        }
-      };
+      ProfileView.prototype.initialize = function(options) {};
 
       ProfileView.prototype.onRender = function() {
         var state;
@@ -2266,16 +2289,6 @@ window.require.register("views/ProfileView", function(exports, require, module) 
         id = this.model.get('_id');
         application.controller_.activateProfile(id, newState);
         return false;
-      };
-
-      ProfileView.prototype.addStep = function(e) {
-        var modal, options;
-        options = {
-          profile: this.model,
-          application: application
-        };
-        modal = new FermentationStepModalView(options);
-        return application.layout.modal.show(modal);
       };
 
       ProfileView.prototype.editProfile = function(e) {
@@ -2498,12 +2511,12 @@ window.require.register("views/templates/graphLayout", function(exports, require
     stack1 = foundHelper || depth0.fermenterId;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "_heaterRegion\"></div>\n		<br />\n		<a id=\"";
+    buffer += escapeExpression(stack1) + "_heaterRegion\"></div>\n		<br />\n		<!--<a id=\"";
     foundHelper = helpers.fermenterId;
     stack1 = foundHelper || depth0.fermenterId;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "_history\" class=\"history\" href=\"#\">History...</a>\n	</div>\n</div>\n\n<div id=\"";
+    buffer += escapeExpression(stack1) + "_history\" class=\"history\" href=\"#\">History...</a>-->\n	</div>\n</div>\n\n<div id=\"";
     foundHelper = helpers.fermenterId;
     stack1 = foundHelper || depth0.fermenterId;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
@@ -2567,7 +2580,7 @@ window.require.register("views/templates/profile", function(exports, require, mo
     stack1 = foundHelper || depth0._id;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "_id", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "\">details</a></td>\n</tr>\n<tr>\n	<td colspan=\"3\">Steps <button class=\"add-step\" class=\"btn btn-mini\">Add Step</button></td>\n	<td>\n		<ol id=\"steps\">\n		</ol>\n 	</td>\n 	<td></td>\n 	<td></td>\n 	<td></td>\n</tr>";
+    buffer += escapeExpression(stack1) + "\">details</a></td>\n</tr>\n";
     return buffer;});
 });
 window.require.register("views/templates/profileDetail", function(exports, require, module) {
@@ -2581,7 +2594,17 @@ window.require.register("views/templates/profileDetail", function(exports, requi
     stack1 = foundHelper || depth0.name;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "name", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</h2>\n<div class=\"row\">\n	<div class=\"span4\">\n	</div>\n	<div class=\"span4\">\n	</div>\n</div>\n\n<button class=\"edit\" href=\"#\">edit</button>\n<button class=\"delete\" href=\"#\">delete</button>\n\n<h4>Steps</h4>\n<button class=\"add-step\" class=\"btn btn-mini\">Add Step</button>\n<table id=\"steps\">\n</table>";
+    buffer += escapeExpression(stack1) + "</h2>\n<hr />\n<div class=\"row\">\n	<div class=\"span1\">\n		<strong>Sensor:</strong><br />\n		<strong>Control Mode:</strong><br />\n	</div>\n	<div class=\"span2\">\n		";
+    foundHelper = helpers.sensor;
+    stack1 = foundHelper || depth0.sensor;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "sensor", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "<br />\n		";
+    foundHelper = helpers.control_mode;
+    stack1 = foundHelper || depth0.control_mode;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "control_mode", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "<br />\n	</div>\n</div>\n<br />\n<button class=\"edit\" href=\"#\">Edit Profile</button>\n<hr />\n<h4>Steps</h4>\n<ol id=\"steps\">\n</ol>\n<br />\n<button class=\"add-step\" class=\"btn btn-mini\">Add Step</button>\n";
     return buffer;});
 });
 window.require.register("views/templates/profileModal", function(exports, require, module) {

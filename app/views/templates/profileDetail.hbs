@@ -1,15 +1,20 @@
 <h2>{{name}}</h2>
+<hr />
 <div class="row">
-	<div class="span4">
+	<div class="span1">
+		<strong>Sensor:</strong><br />
+		<strong>Control Mode:</strong><br />
 	</div>
-	<div class="span4">
+	<div class="span2">
+		{{sensor}}<br />
+		{{control_mode}}<br />
 	</div>
 </div>
-
-<button class="edit" href="#">edit</button>
-<button class="delete" href="#">delete</button>
-
+<br />
+<button class="edit" href="#">Edit Profile</button>
+<hr />
 <h4>Steps</h4>
+<ol id="steps">
+</ol>
+<br />
 <button class="add-step" class="btn btn-mini">Add Step</button>
-<table id="steps">
-</table>

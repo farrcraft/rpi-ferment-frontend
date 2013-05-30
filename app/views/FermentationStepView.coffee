@@ -17,9 +17,9 @@ module.exports = class FermentationStepView extends Backbone.Marionette.ItemView
 			options =
 				profile: @model.get 'profile'
 				model: @model
-				application: application
+				application: @app
 			modal = new FermentationStepModalView(options)
-			application.layout.modal.show modal
+			@app.layout.modal.show modal
 			false
 
 		deleteStep: (e) =>
@@ -29,6 +29,6 @@ module.exports = class FermentationStepView extends Backbone.Marionette.ItemView
 			steps.splice position - 1, 1
 			profile.set 'steps', steps
 			profile.once 'sync', () => 
-				application.vent.trigger 'Profile:Modified'
+				@app.vent.trigger 'Profile:Modified'
 			profile.save()			
 			false
