@@ -267,6 +267,16 @@ window.require.register("initialize", function(exports, require, module) {
   }).call(this);
   
 });
+window.require.register("lib/config", function(exports, require, module) {
+  (function() {
+
+    module.exports = {
+      modelRoot: 'http://graphite:3010'
+    };
+
+  }).call(this);
+  
+});
 window.require.register("lib/graph", function(exports, require, module) {
   (function() {
     var Graph, Graphene,
@@ -1069,6 +1079,7 @@ window.require.register("lib/router", function(exports, require, module) {
       __extends(Router, _super);
 
       function Router() {
+        this.profile = __bind(this.profile, this);
         this.profiles = __bind(this.profiles, this);
         this.home = __bind(this.home, this);
         Router.__super__.constructor.apply(this, arguments);
@@ -1102,6 +1113,8 @@ window.require.register("lib/router", function(exports, require, module) {
         window.RpiApp.layout.content.show(profiles);
         return profiles.showProfiles();
       };
+
+      Router.prototype.profile = function(id) {};
 
       return Router;
 
@@ -1267,9 +1280,11 @@ window.require.register("models/model", function(exports, require, module) {
 });
 window.require.register("models/profileCollection", function(exports, require, module) {
   (function() {
-    var ProfileCollection, ProfileModel,
+    var ProfileCollection, ProfileModel, config,
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    config = require('lib/config');
 
     ProfileModel = require('models/profileModel');
 
@@ -1281,7 +1296,7 @@ window.require.register("models/profileCollection", function(exports, require, m
         ProfileCollection.__super__.constructor.apply(this, arguments);
       }
 
-      ProfileCollection.prototype.url = '/profiles';
+      ProfileCollection.prototype.url = config.modelRoot + '/profiles';
 
       ProfileCollection.prototype.model = ProfileModel;
 
@@ -1294,9 +1309,11 @@ window.require.register("models/profileCollection", function(exports, require, m
 });
 window.require.register("models/profileModel", function(exports, require, module) {
   (function() {
-    var ProfileModel,
+    var ProfileModel, config,
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    config = require('lib/config');
 
     module.exports = ProfileModel = (function(_super) {
 
@@ -1306,7 +1323,7 @@ window.require.register("models/profileModel", function(exports, require, module
         ProfileModel.__super__.constructor.apply(this, arguments);
       }
 
-      ProfileModel.prototype.urlRoot = '/profiles';
+      ProfileModel.prototype.urlRoot = config.modelRoot + '/profiles';
 
       ProfileModel.prototype.idAttribute = '_id';
 
@@ -2015,6 +2032,95 @@ window.require.register("views/ProfileCollectionView", function(exports, require
   }).call(this);
   
 });
+window.require.register("views/ProfileDetailView", function(exports, require, module) {
+  (function() {
+    var FermentationStepModalView, FermentationStepView, ProfileDetailView, ProfileModalView, StepCollection, StepModel, application, template,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    application = require('application');
+
+    template = require('./templates/profileDetail');
+
+    ProfileModalView = require('views/ProfileModalView');
+
+    FermentationStepModalView = require('views/FermentationStepModalView');
+
+    StepModel = require('models/stepModel');
+
+    StepCollection = require('models/stepCollection');
+
+    FermentationStepView = require('views/FermentationStepView');
+
+    module.exports = ProfileDetailView = (function(_super) {
+
+      __extends(ProfileDetailView, _super);
+
+      function ProfileDetailView() {
+        this.editProfile = __bind(this.editProfile, this);
+        this.initialize = __bind(this.initialize, this);
+        ProfileDetailView.__super__.constructor.apply(this, arguments);
+      }
+
+      ProfileDetailView.prototype.template = template;
+
+      ProfileDetailView.prototype.events = {
+        'click .add-step': 'addStep',
+        'click .edit': 'editProfile'
+      };
+
+      ProfileDetailView.prototype.itemView = FermentationStepView;
+
+      ProfileDetailView.prototype.itemViewContainer = '#steps';
+
+      ProfileDetailView.prototype.initialize = function(options) {
+        var model, step, steps;
+        this.collection = new StepCollection();
+        steps = this.model.get('steps');
+        if (steps !== void 0) {
+          return step = (function() {
+            var _i, _len, _results;
+            _results = [];
+            for (_i = 0, _len = steps.length; _i < _len; _i++) {
+              step = steps[_i];
+              model = new StepModel(step);
+              model.set('profile', this.model);
+              _results.push(this.collection.add(model));
+            }
+            return _results;
+          }).call(this);
+        }
+      };
+
+      ProfileDetailView.prototype.addStep = function(e) {
+        var modal, options;
+        options = {
+          profile: this.model,
+          application: application
+        };
+        modal = new FermentationStepModalView(options);
+        return application.layout.modal.show(modal);
+      };
+
+      ProfileDetailView.prototype.editProfile = function(e) {
+        var modal, options;
+        options = {
+          model: this.model,
+          application: application
+        };
+        modal = new ProfileModalView(options);
+        application.layout.modal.show(modal);
+        return false;
+      };
+
+      return ProfileDetailView;
+
+    })(Backbone.Marionette.CompositeView);
+
+  }).call(this);
+  
+});
 window.require.register("views/ProfileModalView", function(exports, require, module) {
   (function() {
     var ProfileModalView, ProfileModel, template,
@@ -2456,7 +2562,26 @@ window.require.register("views/templates/profile", function(exports, require, mo
     stack1 = foundHelper || depth0.name;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "name", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</td>\n	<td><a class=\"edit\" href=\"#\">edit</a></td>\n	<td><a class=\"delete\" href=\"#\">delete</a></td>\n	<td><a class=\"activate\" href=\"#\">activate</a></td>\n</tr>\n<tr>\n	<td colspan=\"3\">Steps <button class=\"add-step\" class=\"btn btn-mini\">Add Step</button></td>\n	<td>\n		<ol id=\"steps\">\n		</ol>\n 	</td>\n 	<td></td>\n 	<td></td>\n</tr>";
+    buffer += escapeExpression(stack1) + "</td>\n	<td><a class=\"edit\" href=\"#\">edit</a></td>\n	<td><a class=\"delete\" href=\"#\">delete</a></td>\n	<td><a class=\"activate\" href=\"#\">activate</a></td>\n	<td><a class=\"details\" href=\"#profile/";
+    foundHelper = helpers._id;
+    stack1 = foundHelper || depth0._id;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "_id", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\">details</a></td>\n</tr>\n<tr>\n	<td colspan=\"3\">Steps <button class=\"add-step\" class=\"btn btn-mini\">Add Step</button></td>\n	<td>\n		<ol id=\"steps\">\n		</ol>\n 	</td>\n 	<td></td>\n 	<td></td>\n 	<td></td>\n</tr>";
+    return buffer;});
+});
+window.require.register("views/templates/profileDetail", function(exports, require, module) {
+  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+    helpers = helpers || Handlebars.helpers;
+    var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
+
+
+    buffer += "<h2>";
+    foundHelper = helpers.name;
+    stack1 = foundHelper || depth0.name;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "name", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "</h2>\n<div class=\"row\">\n	<div class=\"span4\">\n	</div>\n	<div class=\"span4\">\n	</div>\n</div>\n\n<button class=\"edit\" href=\"#\">edit</button>\n<button class=\"delete\" href=\"#\">delete</button>\n\n<h4>Steps</h4>\n<button class=\"add-step\" class=\"btn btn-mini\">Add Step</button>\n<table id=\"steps\">\n</table>";
     return buffer;});
 });
 window.require.register("views/templates/profileModal", function(exports, require, module) {

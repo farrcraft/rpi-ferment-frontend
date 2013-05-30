@@ -1,3 +1,6 @@
+# rpi-ferment-frontend
+# Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
+
 module.exports = class StepModel extends Backbone.Model
 	idAttribute: '_id'
 	defaults:

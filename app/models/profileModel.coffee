@@ -1,5 +1,10 @@
+# rpi-ferment-frontend
+# Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
+
+config = require 'lib/config'
+
 module.exports = class ProfileModel extends Backbone.Model
-	urlRoot: '/profiles'
+	urlRoot: config.modelRoot + '/profiles'
 	idAttribute: '_id'
 	defaults:
 		name: 'Fermentation Profile'

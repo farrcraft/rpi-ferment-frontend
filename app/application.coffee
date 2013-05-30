@@ -1,3 +1,6 @@
+# rpi-ferment-frontend
+# Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
+
 require 'lib/view_helper'
 Graph = require 'lib/graph'
 ProfileController = require 'controllers/profile'

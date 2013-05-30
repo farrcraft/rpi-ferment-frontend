@@ -1,3 +1,6 @@
+# rpi-ferment-frontend
+# Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
+
 HomeLayout 		= require 'views/HomeLayout'
 ProfilesLayout 	= require 'views/ProfilesLayout'
 
@@ -23,3 +26,6 @@ module.exports = class Router extends Backbone.Router
 		window.RpiApp.layout.content.close()
 		window.RpiApp.layout.content.show profiles
 		profiles.showProfiles()
+
+	profile: (id) =>
+		

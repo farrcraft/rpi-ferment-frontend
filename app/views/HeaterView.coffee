@@ -1,3 +1,6 @@
+# rpi-ferment-frontend
+# Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
+
 template = require './templates/heater'
 HeaterModel = require 'models/heaterModel'
 

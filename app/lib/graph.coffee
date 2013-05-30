@@ -1,3 +1,6 @@
+# rpi-ferment-frontend
+# Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
+
 Graphene = require 'lib/graphene'
 
 # class for creating dashboard graphs

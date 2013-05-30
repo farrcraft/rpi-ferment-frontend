@@ -1,3 +1,6 @@
+# rpi-ferment-frontend
+# Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
+
 ProfileView = require 'views/ProfileView'
 
 module.exports = class ProfileCollectionView extends Backbone.Marionette.CollectionView

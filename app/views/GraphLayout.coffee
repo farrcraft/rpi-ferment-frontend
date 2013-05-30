@@ -1,3 +1,6 @@
+# rpi-ferment-frontend
+# Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
+
 application = require 'application'
 HeaterView 	= require 'views/HeaterView'
 SampleView 	= require 'views/SampleView'
