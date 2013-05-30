@@ -2521,7 +2521,7 @@ window.require.register("views/templates/graphLayout", function(exports, require
     stack1 = foundHelper || depth0.fermenterId;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "_sampleRegion\"></div>";
+    buffer += escapeExpression(stack1) + "_sampleRegion\"></div>\n<hr />";
     return buffer;});
 });
 window.require.register("views/templates/heater", function(exports, require, module) {

@@ -1,18 +1,13 @@
 # rpi-ferment-frontend
-This is the frontend application for the rpi-ferment server.
+This is the frontend application for the rpi-ferment server.  It includes a lightweight server-side application using node-static to serve the static application assets. 
 
-The frontend is built with [Brunch](http://brunch.io/) with [MarionetteJS](http://marionettejs.com/).
-
-The server side is a Node.js application with a MongoDB data store.
+The frontend is built using [Brunch](http://brunch.io/) with [MarionetteJS](http://marionettejs.com/).
 
 
 ## Dependencies
 
-- [ExpressJS](http://expressjs.com/) 
-- Winston
-- Mongoose
-- Handlebars
-- Socket.io
+- brunch
+- node-static
 
-Graphene is used for rendering graph data from the graphite server.
+Graphene is included for rendering graph data from the graphite server.
 
