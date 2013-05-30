@@ -19,10 +19,10 @@ module.exports = class GraphLayout extends Backbone.Marionette.Layout
 	initialize: (options) =>
 		application.vent.on 'Profiles:Loaded', @updateProfileData
 
+		fermenterId = @model.get 'fermenterId'
 		application.controller_.profiles_.each (profile) =>
 			sensor = profile.get 'sensor'
-			fermenterId = @model.get 'fermenterId'
-			active = @model.get 'active'
+			active = profile.get 'active'
 			if sensor is fermenterId and active is true
 				@model.set 'profile', profile
 				@model.set 'profileName', profile.get 'name'

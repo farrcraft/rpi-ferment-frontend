@@ -1,8 +1,9 @@
 ProfileCollectionView 	= require 'views/ProfileCollectionView'
 ProfileModel 			= require 'models/profileModel'
+template 				= require 'views/templates/profilesLayout'
 
 module.exports = class ProfilesLayout extends Backbone.Marionette.Layout
-	template: require('views/templates/profilesLayout')
+	template: template
 
 	regions:
 		profiles: "#profiles-table"

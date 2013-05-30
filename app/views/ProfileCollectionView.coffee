@@ -5,7 +5,7 @@ module.exports = class ProfileCollectionView extends Backbone.Marionette.Collect
 	itemView: ProfileView
 	initialize: (options) =>
 		@app = options.application
-		@app.vent.on 'Profile:Modified', =>
+		@app.vent.on 'Profile:Modified', () =>
 			@collection.fetch
 				add: true
 				success: () =>

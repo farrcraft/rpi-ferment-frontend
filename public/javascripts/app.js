@@ -163,6 +163,7 @@ window.require.register("controllers/profile", function(exports, require, module
 
       function ProfileController() {
         this.setupSockets = __bind(this.setupSockets, this);
+        this.activateProfile = __bind(this.activateProfile, this);
         this.initialize = __bind(this.initialize, this);
         ProfileController.__super__.constructor.apply(this, arguments);
       }
@@ -190,6 +191,37 @@ window.require.register("controllers/profile", function(exports, require, module
           };
           modal = new ProfileModalView(options);
           return _this.app.layout.modal.show(modal);
+        });
+      };
+
+      ProfileController.prototype.activateProfile = function(id, state) {
+        var activeSensor, oldState,
+          _this = this;
+        activeSensor = null;
+        oldState = !state;
+        this.profiles_.each(function(profile) {
+          var thisId;
+          thisId = profile.get('_id');
+          if (id === thisId) return activeSensor = profile.get('sensor');
+        });
+        return this.profiles_.each(function(profile) {
+          var save, thisId, thisSensor;
+          thisId = profile.get('_id');
+          thisSensor = profile.get('sensor');
+          save = false;
+          if (id === thisId) {
+            profile.set('active', state);
+            save = true;
+          } else if (activeSensor === thisSensor) {
+            profile.set('active', oldState);
+            save = true;
+          }
+          if (save) {
+            profile.once('sync', function() {
+              return _this.app.vent.trigger('Profile:Modified');
+            });
+            return profile.save();
+          }
         });
       };
 
@@ -1625,13 +1657,14 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
       };
 
       GraphLayout.prototype.initialize = function(options) {
-        var _this = this;
+        var fermenterId,
+          _this = this;
         application.vent.on('Profiles:Loaded', this.updateProfileData);
+        fermenterId = this.model.get('fermenterId');
         application.controller_.profiles_.each(function(profile) {
-          var active, fermenterId, sensor;
+          var active, sensor;
           sensor = profile.get('sensor');
-          fermenterId = _this.model.get('fermenterId');
-          active = _this.model.get('active');
+          active = profile.get('active');
           if (sensor === fermenterId && active === true) {
             _this.model.set('profile', profile);
             return _this.model.set('profileName', profile.get('name'));
@@ -2063,7 +2096,12 @@ window.require.register("views/ProfileView", function(exports, require, module) 
       ProfileView.prototype.events = {
         'click .add-step': 'addStep',
         'click .edit': 'editProfile',
-        'click .delete': 'deleteProfile'
+        'click .delete': 'deleteProfile',
+        'click .activate': 'activateProfile'
+      };
+
+      ProfileView.prototype.ui = {
+        activateButton: '.activate'
       };
 
       ProfileView.prototype.itemView = FermentationStepView;
@@ -2071,23 +2109,45 @@ window.require.register("views/ProfileView", function(exports, require, module) 
       ProfileView.prototype.itemViewContainer = '#steps';
 
       ProfileView.prototype.initialize = function(options) {
-        var collection, model, step, steps;
-        collection = new StepCollection();
+        var model, step, steps;
+        this.collection = new StepCollection();
         steps = this.model.get('steps');
         if (steps !== void 0) {
-          step = (function() {
+          return step = (function() {
             var _i, _len, _results;
             _results = [];
             for (_i = 0, _len = steps.length; _i < _len; _i++) {
               step = steps[_i];
               model = new StepModel(step);
               model.set('profile', this.model);
-              _results.push(collection.add(model));
+              _results.push(this.collection.add(model));
             }
             return _results;
           }).call(this);
         }
-        return this.collection = collection;
+      };
+
+      ProfileView.prototype.onRender = function() {
+        var state;
+        state = this.model.get('active');
+        if (state) return this.ui.activateButton.text('deactivate');
+      };
+
+      ProfileView.prototype.activateProfile = function(e) {
+        var id, newState, state;
+        state = this.model.get('active');
+        newState = false;
+        if (state === true) {
+          this.model.set('active', false);
+          this.ui.activateButton.text('activate');
+        } else {
+          newState = true;
+          this.model.set('active', true);
+          this.ui.activateButton.text('deactivate');
+        }
+        id = this.model.get('_id');
+        application.controller_.activateProfile(id, newState);
+        return false;
       };
 
       ProfileView.prototype.addStep = function(e) {
@@ -2128,7 +2188,7 @@ window.require.register("views/ProfileView", function(exports, require, module) 
 });
 window.require.register("views/ProfilesLayout", function(exports, require, module) {
   (function() {
-    var ProfileCollectionView, ProfileModel, ProfilesLayout,
+    var ProfileCollectionView, ProfileModel, ProfilesLayout, template,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
@@ -2136,6 +2196,8 @@ window.require.register("views/ProfilesLayout", function(exports, require, modul
     ProfileCollectionView = require('views/ProfileCollectionView');
 
     ProfileModel = require('models/profileModel');
+
+    template = require('views/templates/profilesLayout');
 
     module.exports = ProfilesLayout = (function(_super) {
 
@@ -2147,7 +2209,7 @@ window.require.register("views/ProfilesLayout", function(exports, require, modul
         ProfilesLayout.__super__.constructor.apply(this, arguments);
       }
 
-      ProfilesLayout.prototype.template = require('views/templates/profilesLayout');
+      ProfilesLayout.prototype.template = template;
 
       ProfilesLayout.prototype.regions = {
         profiles: "#profiles-table"
@@ -2382,7 +2444,7 @@ window.require.register("views/templates/profile", function(exports, require, mo
     stack1 = foundHelper || depth0.name;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "name", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</td>\n	<td><a class=\"edit\" href=\"#\">edit</a></td>\n	<td><a class=\"delete\" href=\"#\">delete</a></td>\n</tr>\n<tr>\n	<td colspan=\"3\">Steps <button class=\"add-step\" class=\"btn btn-mini\">Add Step</button></td>\n	<td>\n		<ol id=\"steps\">\n		</ol>\n	<td>\n</tr>";
+    buffer += escapeExpression(stack1) + "</td>\n	<td><a class=\"edit\" href=\"#\">edit</a></td>\n	<td><a class=\"delete\" href=\"#\">delete</a></td>\n	<td><a class=\"activate\" href=\"#\">activate</a></td>\n</tr>\n<tr>\n	<td colspan=\"3\">Steps <button class=\"add-step\" class=\"btn btn-mini\">Add Step</button></td>\n	<td>\n		<ol id=\"steps\">\n		</ol>\n 	</td>\n 	<td></td>\n 	<td></td>\n</tr>";
     return buffer;});
 });
 window.require.register("views/templates/profileModal", function(exports, require, module) {
@@ -2398,7 +2460,7 @@ window.require.register("views/templates/profileModal", function(exports, requir
   function program3(depth0,data) {
     
     
-    return "\n						<option value=\"none\">None</option>\n						<option value=\"pid\">PID</option>\n						<option value=\"manual\">Manual</option>\n					";}
+    return "\n						<option value=\"none\">None</option>\n						<option value=\"pid\">PID</option>\n						<option value=\"auto\">Auto</option>\n						<option value=\"manual\">Manual</option>\n					";}
 
     buffer += "<div id=\"profile-modal\">\n	<div class=\"modal-header\">\n		<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">×</button>\n		<h3 id=\"profileModalLabel\">Fermentation Profile</h3>\n	</div>\n	<div class=\"modal-body\">\n		<form class=\"form-horizontal\" id=\"profile-form\">\n			<input type=\"hidden\" id=\"profile-input-id\" value=\"\">\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"profile-input-name\">Name</label>\n				<div class=\"controls\">\n					<input type=\"text\" id=\"profile-input-name\" placeholder=\"Name\" value=\"";
     foundHelper = helpers.name;

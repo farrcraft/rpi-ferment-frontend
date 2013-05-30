@@ -22,8 +22,30 @@ module.exports = class ProfileController extends Backbone.Marionette.Controller
 			options =
 				application: @app
 				model: model
-			modal = new ProfileModalView(options)
+			modal = new ProfileModalView options
 			@app.layout.modal.show modal
+
+	activateProfile: (id, state) =>
+		activeSensor = null
+		oldState = !state
+		@profiles_.each (profile) ->
+			thisId = profile.get '_id'
+			if id is thisId
+				activeSensor = profile.get 'sensor'
+		@profiles_.each (profile) =>
+			thisId = profile.get '_id'
+			thisSensor = profile.get 'sensor'
+			save = false
+			if id is thisId
+				profile.set 'active', state
+				save = true
+			else if activeSensor is thisSensor
+				profile.set 'active', oldState
+				save = true
+			if save
+				profile.once 'sync', () => 
+					@app.vent.trigger 'Profile:Modified'
+				profile.save()
 
 	setupSockets: =>
 		@socket_ = io.connect 'http://graphite:6001'
