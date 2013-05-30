@@ -16,4 +16,6 @@ module.exports = class ProfileModel extends Backbone.Model
 				order: 1
 			}
 		]
+		overrides: [
+		]
 

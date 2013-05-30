@@ -27,6 +27,8 @@ module.exports.routes = (app) ->
 		profile.sensor = req.body.sensor
 		profile.steps = req.body.steps
 		profile.active = req.body.active
+		profile.overrides = req.body.overrides
+
 		saveCallback = (err) ->
 			return
 		profile.save saveCallback
@@ -47,6 +49,8 @@ module.exports.routes = (app) ->
 			profile.sensor = req.body.sensor
 			profile.steps = req.body.steps
 			profile.active = req.body.active
+			profile.overrides = req.body.overrides
+
 			profile.save (err) ->
 				if not err
 					res.send profile

@@ -12,6 +12,7 @@ module.exports = class HeaterView extends Backbone.Marionette.ItemView
 	initialize: (options) =>
 		@fermenterId = options.fermenterId
 		@app = options.application
+		@graphModel = options.graphModel
 		modelOptions = 
 			fermenterId: @fermenterId
 			gpio: options.gpio
@@ -29,6 +30,16 @@ module.exports = class HeaterView extends Backbone.Marionette.ItemView
 			newClass = 'red'
 			oldClass = 'green'
 			value = false
+
+		profile = @graphModel.get 'profile'
+		overrides = profile.get 'overrides'
+		override = 
+			action: newState
+			time: new Date()
+		overrides.push override
+		profile.set 'overrides', overrides
+		profile.save()
+
 		@model.set 'state', newState
 		@ui.heaterLight.removeClass oldClass
 		@ui.heaterLight.addClass newClass

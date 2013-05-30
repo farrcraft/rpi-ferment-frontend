@@ -1324,7 +1324,8 @@ window.require.register("models/profileModel", function(exports, require, module
             unit: 'days',
             order: 1
           }
-        ]
+        ],
+        overrides: []
       };
 
       return ProfileModel;
@@ -1691,6 +1692,7 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
           fermenterId: fermenterId,
           layout: this,
           application: application,
+          graphModel: this.model,
           gpio: gpio
         };
         heaterView = new HeaterView(options);
@@ -1776,6 +1778,7 @@ window.require.register("views/HeaterView", function(exports, require, module) {
         var modelOptions;
         this.fermenterId = options.fermenterId;
         this.app = options.application;
+        this.graphModel = options.graphModel;
         modelOptions = {
           fermenterId: this.fermenterId,
           gpio: options.gpio
@@ -1784,7 +1787,7 @@ window.require.register("views/HeaterView", function(exports, require, module) {
       };
 
       HeaterView.prototype.heaterOverride = function(e) {
-        var newClass, newState, oldClass, oldState, value;
+        var newClass, newState, oldClass, oldState, override, overrides, profile, value;
         oldState = this.model.get('state');
         newState = 'on';
         newClass = 'green';
@@ -1796,6 +1799,15 @@ window.require.register("views/HeaterView", function(exports, require, module) {
           oldClass = 'green';
           value = false;
         }
+        profile = this.graphModel.get('profile');
+        overrides = profile.get('overrides');
+        override = {
+          action: newState,
+          time: new Date()
+        };
+        overrides.push(override);
+        profile.set('overrides', overrides);
+        profile.save();
         this.model.set('state', newState);
         this.ui.heaterLight.removeClass(oldClass);
         this.ui.heaterLight.addClass(newClass);
