@@ -1,16 +1,19 @@
 # rpi-ferment-frontend
 # Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
 
-template = require './templates/heater'
+template 	= require './templates/heater'
 HeaterModel = require 'models/heaterModel'
 
+# View for displaying heater indicator and heater override controls
 module.exports = class HeaterView extends Backbone.Marionette.ItemView
 	template: template
 	events:
 		'click .heaterOverride': 'heaterOverride'
+		'click .overrideResume': 'overrideResume'
 	ui:
 		heaterLight: '.heaterLight'
 		heaterState: '.heaterState'
+		overrideResume: '.overrideResume'
 
 	initialize: (options) =>
 		@fermenterId = options.fermenterId
@@ -20,18 +23,45 @@ module.exports = class HeaterView extends Backbone.Marionette.ItemView
 			fermenterId: @fermenterId
 			gpio: options.gpio
 		@model = new HeaterModel modelOptions
+
+		@app.vent.on 'Heater:Changed', (data) =>
+			if data.sensor is @fermenterId
+				@setHeaterState data.state
 		return
 
-	heaterOverride: (e) =>
-		oldState = @model.get 'state'
+	onRender: () ->
+		profile = @graphModel.get 'profile'
+		overrides = profile.get 'overrides'
+		if overrides.length > 0
+			if overrides[overrides.length - 1].action isnt 'resume'
+				@ui.overrideResume.hide()
+			else
+				@ui.overrideResume.show()
+
+	# Update the heater indicator and control UI 
+	# The profile and actual gpio state on the server are not modified
+	setHeaterState: (state) =>
 		newState = 'on'
 		newClass = 'green'
 		oldClass = 'red'
-		value = true
-		if oldState is 'on'
+		if state isnt true
 			newState = 'off'
 			newClass = 'red'
 			oldClass = 'green'
+		@model.set 'state', newState
+		@ui.heaterLight.removeClass oldClass
+		@ui.heaterLight.addClass newClass
+		@ui.heaterState.text 'Heater ' + newState
+
+	# Override the current heater state
+	# The current state is toggled, a new override entry is added to the server profile,
+	# the gpio state is toggled, and the UI is updated
+	heaterOverride: (e) =>
+		oldState = @model.get 'state'
+		newState = 'on'
+		value = true
+		if oldState is 'on'
+			newState = 'off'
 			value = false
 
 		profile = @graphModel.get 'profile'
@@ -43,9 +73,21 @@ module.exports = class HeaterView extends Backbone.Marionette.ItemView
 		profile.set 'overrides', overrides
 		profile.save()
 
-		@model.set 'state', newState
-		@ui.heaterLight.removeClass oldClass
-		@ui.heaterLight.addClass newClass
-		@ui.heaterState.text 'Heater ' + newState
+		@setHeaterState value
 		@app.controller_.socket_.emit 'setgpio', @fermenterId, value
+		false
+
+	# Resume the current profile step
+	# A new override entry is saved to the current server profile
+	# The UI update will be triggered from a separate socket.io event
+	overrideResume: (e) =>
+		profile = @graphModel.get 'profile'
+		overrides = profile.get 'overrides'
+		override = 
+			action: 'resume'
+			time: new Date()
+		overrides.push override
+		profile.set 'overrides', overrides
+		profile.save()
+		@ui.overrideResume.hide()
 		false

@@ -236,12 +236,15 @@ window.require.register("controllers/profile", function(exports, require, module
           _this.app.vent.trigger('Socket:PV');
           return console.log('new pv');
         });
-        this.socket_.on('sv', function(data) {
+        this.socket_.on('setsv', function(data) {
           _this.app.vent.trigger('Socket:SV');
           return console.log('new sv');
         });
         this.socket_.on('mode', function(data) {
           return _this.app.vent.trigger('Socket:Mode', data);
+        });
+        this.socket_.on('setgpio', function(data) {
+          return _this.app.vent.trigger('Heater:Changed', data);
         });
         return this.socket_.emit('config');
       };
@@ -1799,7 +1802,9 @@ window.require.register("views/HeaterView", function(exports, require, module) {
       __extends(HeaterView, _super);
 
       function HeaterView() {
+        this.overrideResume = __bind(this.overrideResume, this);
         this.heaterOverride = __bind(this.heaterOverride, this);
+        this.setHeaterState = __bind(this.setHeaterState, this);
         this.initialize = __bind(this.initialize, this);
         HeaterView.__super__.constructor.apply(this, arguments);
       }
@@ -1807,16 +1812,19 @@ window.require.register("views/HeaterView", function(exports, require, module) {
       HeaterView.prototype.template = template;
 
       HeaterView.prototype.events = {
-        'click .heaterOverride': 'heaterOverride'
+        'click .heaterOverride': 'heaterOverride',
+        'click .overrideResume': 'overrideResume'
       };
 
       HeaterView.prototype.ui = {
         heaterLight: '.heaterLight',
-        heaterState: '.heaterState'
+        heaterState: '.heaterState',
+        overrideResume: '.overrideResume'
       };
 
       HeaterView.prototype.initialize = function(options) {
-        var modelOptions;
+        var modelOptions,
+          _this = this;
         this.fermenterId = options.fermenterId;
         this.app = options.application;
         this.graphModel = options.graphModel;
@@ -1825,19 +1833,49 @@ window.require.register("views/HeaterView", function(exports, require, module) {
           gpio: options.gpio
         };
         this.model = new HeaterModel(modelOptions);
+        this.app.vent.on('Heater:Changed', function(data) {
+          if (data.sensor === _this.fermenterId) {
+            return _this.setHeaterState(data.state);
+          }
+        });
       };
 
-      HeaterView.prototype.heaterOverride = function(e) {
-        var newClass, newState, oldClass, oldState, override, overrides, profile, value;
-        oldState = this.model.get('state');
+      HeaterView.prototype.onRender = function() {
+        var overrides, profile;
+        profile = this.graphModel.get('profile');
+        overrides = profile.get('overrides');
+        if (overrides.length > 0) {
+          if (overrides[overrides.length - 1].action !== 'resume') {
+            return this.ui.overrideResume.hide();
+          } else {
+            return this.ui.overrideResume.show();
+          }
+        }
+      };
+
+      HeaterView.prototype.setHeaterState = function(state) {
+        var newClass, newState, oldClass;
         newState = 'on';
         newClass = 'green';
         oldClass = 'red';
-        value = true;
-        if (oldState === 'on') {
+        if (state !== true) {
           newState = 'off';
           newClass = 'red';
           oldClass = 'green';
+        }
+        this.model.set('state', newState);
+        this.ui.heaterLight.removeClass(oldClass);
+        this.ui.heaterLight.addClass(newClass);
+        return this.ui.heaterState.text('Heater ' + newState);
+      };
+
+      HeaterView.prototype.heaterOverride = function(e) {
+        var newState, oldState, override, overrides, profile, value;
+        oldState = this.model.get('state');
+        newState = 'on';
+        value = true;
+        if (oldState === 'on') {
+          newState = 'off';
           value = false;
         }
         profile = this.graphModel.get('profile');
@@ -1849,11 +1887,23 @@ window.require.register("views/HeaterView", function(exports, require, module) {
         overrides.push(override);
         profile.set('overrides', overrides);
         profile.save();
-        this.model.set('state', newState);
-        this.ui.heaterLight.removeClass(oldClass);
-        this.ui.heaterLight.addClass(newClass);
-        this.ui.heaterState.text('Heater ' + newState);
+        this.setHeaterState(value);
         this.app.controller_.socket_.emit('setgpio', this.fermenterId, value);
+        return false;
+      };
+
+      HeaterView.prototype.overrideResume = function(e) {
+        var override, overrides, profile;
+        profile = this.graphModel.get('profile');
+        overrides = profile.get('overrides');
+        override = {
+          action: 'resume',
+          time: new Date()
+        };
+        overrides.push(override);
+        profile.set('overrides', overrides);
+        profile.save();
+        this.ui.overrideResume.hide();
         return false;
       };
 
@@ -2545,7 +2595,7 @@ window.require.register("views/templates/heater", function(exports, require, mod
     stack1 = foundHelper || depth0.fermenterId;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "_heaterOverride\" class=\"heaterOverride\" href=\"#\">[override]</a>\n";
+    buffer += escapeExpression(stack1) + "_heaterOverride\" class=\"heaterOverride\" href=\"#\">[override]</a> <a class=\"overrideResume\" href=\"#\">[resume]</a>\n";
     return buffer;});
 });
 window.require.register("views/templates/home", function(exports, require, module) {

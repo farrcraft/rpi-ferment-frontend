@@ -55,10 +55,11 @@ module.exports = class ProfileController extends Backbone.Marionette.Controller
 		@socket_.on 'pv', (data) =>
 			@app.vent.trigger 'Socket:PV'
 			console.log 'new pv'
-		@socket_.on 'sv', (data) =>
+		@socket_.on 'setsv', (data) =>
 			@app.vent.trigger 'Socket:SV'
 			console.log 'new sv'
 		@socket_.on 'mode', (data) =>
 			@app.vent.trigger 'Socket:Mode', data
-
+		@socket_.on 'setgpio', (data) =>
+			@app.vent.trigger 'Heater:Changed', data
 		@socket_.emit 'config'
