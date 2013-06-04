@@ -1843,13 +1843,15 @@ window.require.register("views/HeaterView", function(exports, require, module) {
       HeaterView.prototype.onRender = function() {
         var overrides, profile;
         profile = this.graphModel.get('profile');
+        if (profile === void 0) {
+          this.ui.overrideResume.hide();
+          return;
+        }
         overrides = profile.get('overrides');
-        if (overrides.length > 0) {
-          if (overrides[overrides.length - 1].action !== 'resume') {
-            return this.ui.overrideResume.hide();
-          } else {
-            return this.ui.overrideResume.show();
-          }
+        if (overrides.length > 0 && overrides[overrides.length - 1].action === 'resume') {
+          return this.ui.overrideResume.show();
+        } else {
+          return this.ui.overrideResume.hide();
         }
       };
 

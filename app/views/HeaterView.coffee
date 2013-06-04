@@ -31,12 +31,15 @@ module.exports = class HeaterView extends Backbone.Marionette.ItemView
 
 	onRender: () ->
 		profile = @graphModel.get 'profile'
+		if profile is undefined
+			@ui.overrideResume.hide()
+			return
 		overrides = profile.get 'overrides'
-		if overrides.length > 0
-			if overrides[overrides.length - 1].action isnt 'resume'
-				@ui.overrideResume.hide()
-			else
-				@ui.overrideResume.show()
+		if overrides.length > 0 and overrides[overrides.length - 1].action is 'resume'
+			@ui.overrideResume.show()
+		else
+			@ui.overrideResume.hide()
+
 
 	# Update the heater indicator and control UI 
 	# The profile and actual gpio state on the server are not modified
