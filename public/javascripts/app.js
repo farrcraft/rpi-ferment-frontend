@@ -1569,9 +1569,21 @@ window.require.register("views/FermentationStepModalView", function(exports, req
         'click #save-step': 'saveStep'
       };
 
+      FermentationStepModalView.prototype.ui = {
+        orderInput: '#step-input-order'
+      };
+
       FermentationStepModalView.prototype.initialize = function(options) {
         this.profile_ = options.profile;
         return this.app = options.application;
+      };
+
+      FermentationStepModalView.prototype.onRender = function() {
+        var spinOptions;
+        spinOptions = {
+          minimum: 1
+        };
+        return this.ui.orderInput.spinedit(spinOptions);
       };
 
       FermentationStepModalView.prototype.saveStep = function(e) {
@@ -2663,7 +2675,12 @@ window.require.register("views/templates/fermentationStepModal", function(export
     
     return "\n						<option value=\"days\">Days</option>\n						<option value=\"hours\">Hours</option>\n						";}
 
-    buffer += "<div id=\"step-modal\">\n	<div class=\"modal-header\">\n		<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">×</button>\n		<h3 id=\"stepModalLabel\">Fermentation Step</h3>\n	</div>\n	<div class=\"modal-body\">\n		<form class=\"form-horizontal\" id=\"step-form\">\n			<input type=\"hidden\" name=\"step-input-id\" value=\"\">\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"step-input-name\">Name</label>\n				<div class=\"controls\">\n					<input type=\"text\" id=\"step-input-name\" placeholder=\"Name\" value=\"";
+    buffer += "<div id=\"step-modal\">\n	<div class=\"modal-header\">\n		<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">×</button>\n		<h3 id=\"stepModalLabel\">Fermentation Step</h3>\n	</div>\n	<div class=\"modal-body\">\n		<form class=\"form-horizontal\" id=\"step-form\">\n			<input type=\"hidden\" name=\"step-input-id\" value=\"\">\n			<iput type=\"hidden\" name=\"step-input-old-order\" value=\"";
+    foundHelper = helpers.order;
+    stack1 = foundHelper || depth0.order;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "order", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\">\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"step-input-name\">Name</label>\n				<div class=\"controls\">\n					<input type=\"text\" id=\"step-input-name\" placeholder=\"Name\" value=\"";
     foundHelper = helpers.name;
     stack1 = foundHelper || depth0.name;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }

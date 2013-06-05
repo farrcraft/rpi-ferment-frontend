@@ -17,6 +17,7 @@ exports.config =
           'vendor/scripts/socket.io.js'
           'vendor/scripts/d3.js'
           'vendor/scripts/moment.js'
+          'vendor/scripts/bootstrap-spinedit.js'
         ]
 
     stylesheets:
@@ -24,10 +25,11 @@ exports.config =
       joinTo: 'stylesheets/app.css'
       order:
         before: [
-          'vendor/styles/graphene.min.css'
           'vendor/styles/bootstrap.css'
           'vendor/styles/bootstrap-body.css'
           'vendor/styles/bootstrap-responsive.css'
+          'vendor/styles/graphene.min.css'
+          'vendor/styles/bootstrap-spinedit.css'
         ]
         after: []
 

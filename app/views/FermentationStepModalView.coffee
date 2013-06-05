@@ -10,17 +10,24 @@ module.exports = class FermentationStepModalView extends Backbone.Marionette.Ite
 	profile_: { }
 	events:
 		'click #save-step': 'saveStep'
+	ui:
+		orderInput: '#step-input-order'
 
 	initialize: (options) ->
 		@profile_ = options.profile
 		@app = options.application
+
+	onRender: () ->
+		spinOptions =
+			minimum: 1
+		@ui.orderInput.spinedit spinOptions
 
 	saveStep: (e) =>
 		step =
 			name: $('#step-input-name').val()
 			duration: $('#step-input-duration').val()
 			temperature: $('#step-input-temperature').val()
-			order: $('#step-input-order').val()
+			order: $('#step-input-order').val()			
 		steps = @profile_.get 'steps'
 		steps[step.order - 1] = step
 		@profile_.set steps: steps
