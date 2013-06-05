@@ -1,0 +1,22 @@
+<div id="profile-selector-modal">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		<h3 id="profileSelectorModalLabel">Select Fermentation Profile</h3>
+	</div>
+	<div class="modal-body">
+		<form class="form-horizontal" id="profile-selector-form">
+			<div class="control-group">
+				<label class="control-label" for="profile-input-id">Profile</label>
+				<div class="controls">
+					<select id="profile-input-id">
+						{{#profileList profile}}
+						{{/profileList}}
+					</select>
+				</div>
+			</div>
+	</div>
+	<div class="modal-footer">
+		<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+		<button id="save-active-profile" class="btn">Save changes</button>
+	</div>
+</div>

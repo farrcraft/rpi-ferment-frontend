@@ -6,8 +6,9 @@ Graph = require 'lib/graph'
 ProfileController = require 'controllers/profile'
 
 class Application extends Backbone.Marionette.Application
-    graph_: {}
-    config_: {}
+    graph_: null
+    config_: null
+    controller_: null
 
     initialize: =>
         @graph_ = new Graph()

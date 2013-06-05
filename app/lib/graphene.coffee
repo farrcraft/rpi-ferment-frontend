@@ -1,12 +1,15 @@
 
 
 module.exports = class Graphene
+  debug_: false
+
   demo:->
     @is_demo = true
 
   build: (json)=>
     _.each _.keys(json), (k)=>
-      console.log "building [#{k}]"
+      if @debug_
+        console.log "building [#{k}]"
       if @is_demo
         klass = Graphene.DemoTimeSeries
       else
@@ -21,7 +24,8 @@ module.exports = class Graphene
 
       _.each json[k], (opts, view)=>
         klass = eval("Graphene.#{view}View")
-        console.log _.extend({ model: ts, ymin:@getUrlParam(model_opts.source, "yMin"), ymax:@getUrlParam(model_opts.source, "yMax") }, opts)
+        if @debug_
+          console.log _.extend({ model: ts, ymin:@getUrlParam(model_opts.source, "yMin"), ymax:@getUrlParam(model_opts.source, "yMax") }, opts)
         new klass(_.extend({ model: ts, ymin:@getUrlParam(model_opts.source, "yMin"), ymax:@getUrlParam(model_opts.source, "yMax") }, opts))
         ts.start()
 
@@ -76,7 +80,8 @@ class Graphene.GraphiteModel extends Backbone.Model
 
   start: ()=>
     @refresh()
-    console.log("Starting to poll at #{@get('refresh_interval')}")
+    if @debug_
+      console.log("Starting to poll at #{@get('refresh_interval')}")
     @t_index = setInterval(@refresh, @get('refresh_interval'))
 
   stop: ()=>
@@ -93,7 +98,8 @@ class Graphene.GraphiteModel extends Backbone.Model
       dataType: 'json'
       jsonp: 'jsonp'
       success: (js) =>
-        console.log("got data.")
+        if @debug_
+          console.log("got data.")
         @process_data(js)
     $.ajax options
 
@@ -116,7 +122,8 @@ class Graphene.DemoTimeSeries extends Backbone.Model
     console.log("#{@get('refresh_interval')}")
 
   start: ()=>
-    console.log("Starting to poll at #{@get('refresh_interval')}")
+    if @debug_
+      console.log("Starting to poll at #{@get('refresh_interval')}")
     @data = []
     _.each _.range(@get 'num_series'), (i)=>
         @data.push({
@@ -170,7 +177,8 @@ class Graphene.DemoTimeSeries extends Backbone.Model
 
 class Graphene.BarChart extends Graphene.GraphiteModel
   process_data: (js)=>
-    console.log 'process data barchart'
+    if @debug_
+      console.log 'process data barchart'
     data = _.map js, (dp)->
       min = d3.min(dp.datapoints, (d) -> d[0])
       return null unless min != undefined
@@ -261,7 +269,8 @@ class Graphene.GaugeGadgetView extends Backbone.View
       else d.points[0][0]
 
   render: ()=>
-    console.log("rendering.")
+    if @debug_
+      console.log("rendering.")
     data = @model.get('data')
     datum = if data && data.length > 0 then data[0] else { ymax: @null_value, ymin: @null_value, points: [[@null_value, 0]] }
 
@@ -295,7 +304,8 @@ class Graphene.GaugeLabelView extends Backbone.View
           .text(@title)
 
     @model.bind('change', @render)
-    console.log("GL view ")
+    if @debug_
+      console.log("GL view ")
 
 
   by_type:(d)=>
@@ -307,7 +317,8 @@ class Graphene.GaugeLabelView extends Backbone.View
 
   render: ()=>
     data = @model.get('data')
-    console.log data
+    if @debug_
+      console.log data
     datum = if data && data.length > 0 then data[0] else { ymax: @null_value, ymin: @null_value, points: [[@null_value, 0]] }
 
     # let observer know about this
@@ -366,11 +377,13 @@ class Graphene.TimeSeriesView extends Backbone.View
     @value_format = d3.format(@value_format)
 
     @model.bind('change', @render)
-    console.log("TS view: #{@width}x#{@height} padding:#{@padding} animate: #{@animate_ms} labels: #{@num_labels}")
+    if @debug_
+      console.log("TS view: #{@width}x#{@height} padding:#{@padding} animate: #{@animate_ms} labels: #{@num_labels}")
 
 
   render: ()=>
-    console.log("rendering.")
+    if @debug_
+      console.log("rendering.")
     data = @model.get('data')
 
     data = if data && data.length > 0 then data else [{ ymax: @null_value, ymin: @null_value, points: [[@null_value, 0],[@null_value, 0]] }]
@@ -614,5 +627,5 @@ class Graphene.BarChartView extends Backbone.View
 
     vis.transition().ease("linear").duration(@animate_ms).select(".x.axis").call(xAxis)
     vis.select(".y.axis").call(yAxis)
-
-    console.log "done drawing"
+    if @debug_
+      console.log "done drawing"

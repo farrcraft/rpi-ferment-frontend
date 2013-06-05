@@ -24,3 +24,15 @@ Handlebars.registerHelper 'sensorList', (value, options) ->
 				selected = ' selected="selected"'
 			markup = markup + '<option value="' + sensor.name + '"' + selected + '>' + sensor.label  + '</option>'
 	markup
+
+# render all of the select options for the available profiles
+Handlebars.registerHelper 'profileList', (value, options) ->
+	markup = ''
+	window.RpiApp.controller_.profiles_.each (profile) =>
+		id = profile.get '_id'
+		name = profile.get 'name'
+		selected = ''
+		if value is id
+			selected = ' selected="selected"'
+		markup = markup + '<option value="' + id + '"' + selected + '>' + name + '</option>'
+	markup

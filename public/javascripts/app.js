@@ -101,9 +101,11 @@ window.require.register("application", function(exports, require, module) {
         Application.__super__.constructor.apply(this, arguments);
       }
 
-      Application.prototype.graph_ = {};
+      Application.prototype.graph_ = null;
 
-      Application.prototype.config_ = {};
+      Application.prototype.config_ = null;
+
+      Application.prototype.controller_ = null;
 
       Application.prototype.initialize = function() {
         var _this = this;
@@ -167,6 +169,8 @@ window.require.register("controllers/profile", function(exports, require, module
         this.initialize = __bind(this.initialize, this);
         ProfileController.__super__.constructor.apply(this, arguments);
       }
+
+      ProfileController.prototype.socket_ = null;
 
       ProfileController.prototype.initialize = function(options) {
         var _this = this;
@@ -233,15 +237,16 @@ window.require.register("controllers/profile", function(exports, require, module
           return _this.app.vent.trigger('Socket:Config', config);
         });
         this.socket_.on('pv', function(data) {
-          _this.app.vent.trigger('Socket:PV');
-          return console.log('new pv');
+          return _this.app.vent.trigger('Socket:PV', data);
         });
         this.socket_.on('setsv', function(data) {
-          _this.app.vent.trigger('Socket:SV');
-          return console.log('new sv');
+          return _this.app.vent.trigger('Socket:SV', data);
         });
         this.socket_.on('mode', function(data) {
           return _this.app.vent.trigger('Socket:Mode', data);
+        });
+        this.socket_.on('getgpio', function(data) {
+          return _this.app.vent.trigger('Heater:State', data);
         });
         this.socket_.on('setgpio', function(data) {
           return _this.app.vent.trigger('Heater:Changed', data);
@@ -343,6 +348,8 @@ window.require.register("lib/graphene", function(exports, require, module) {
         this.build = __bind(this.build, this);
       }
 
+      Graphene.prototype.debug_ = false;
+
       Graphene.prototype.demo = function() {
         return this.is_demo = true;
       };
@@ -351,7 +358,7 @@ window.require.register("lib/graphene", function(exports, require, module) {
         var _this = this;
         return _.each(_.keys(json), function(k) {
           var klass, model_opts, ts;
-          console.log("building [" + k + "]");
+          if (_this.debug_) console.log("building [" + k + "]");
           if (_this.is_demo) {
             klass = Graphene.DemoTimeSeries;
           } else {
@@ -368,11 +375,13 @@ window.require.register("lib/graphene", function(exports, require, module) {
           ts = new klass(model_opts);
           return _.each(json[k], function(opts, view) {
             klass = eval("Graphene." + view + "View");
-            console.log(_.extend({
-              model: ts,
-              ymin: _this.getUrlParam(model_opts.source, "yMin"),
-              ymax: _this.getUrlParam(model_opts.source, "yMax")
-            }, opts));
+            if (_this.debug_) {
+              console.log(_.extend({
+                model: ts,
+                ymin: _this.getUrlParam(model_opts.source, "yMin"),
+                ymax: _this.getUrlParam(model_opts.source, "yMax")
+              }, opts));
+            }
             new klass(_.extend({
               model: ts,
               ymin: _this.getUrlParam(model_opts.source, "yMin"),
@@ -456,7 +465,9 @@ window.require.register("lib/graphene", function(exports, require, module) {
 
       GraphiteModel.prototype.start = function() {
         this.refresh();
-        console.log("Starting to poll at " + (this.get('refresh_interval')));
+        if (this.debug_) {
+          console.log("Starting to poll at " + (this.get('refresh_interval')));
+        }
         return this.t_index = setInterval(this.refresh, this.get('refresh_interval'));
       };
 
@@ -474,7 +485,7 @@ window.require.register("lib/graphene", function(exports, require, module) {
           dataType: 'json',
           jsonp: 'jsonp',
           success: function(js) {
-            console.log("got data.");
+            if (_this.debug_) console.log("got data.");
             return _this.process_data(js);
           }
         };
@@ -515,7 +526,9 @@ window.require.register("lib/graphene", function(exports, require, module) {
 
       DemoTimeSeries.prototype.start = function() {
         var _this = this;
-        console.log("Starting to poll at " + (this.get('refresh_interval')));
+        if (this.debug_) {
+          console.log("Starting to poll at " + (this.get('refresh_interval')));
+        }
         this.data = [];
         _.each(_.range(this.get('num_series')), function(i) {
           return _this.data.push({
@@ -592,7 +605,7 @@ window.require.register("lib/graphene", function(exports, require, module) {
 
       BarChart.prototype.process_data = function(js) {
         var data;
-        console.log('process data barchart');
+        if (this.debug_) console.log('process data barchart');
         data = _.map(js, function(dp) {
           var max, min;
           min = d3.min(dp.datapoints, function(d) {
@@ -738,7 +751,7 @@ window.require.register("lib/graphene", function(exports, require, module) {
 
       GaugeGadgetView.prototype.render = function() {
         var data, datum;
-        console.log("rendering.");
+        if (this.debug_) console.log("rendering.");
         data = this.model.get('data');
         datum = data && data.length > 0 ? data[0] : {
           ymax: this.null_value,
@@ -781,7 +794,7 @@ window.require.register("lib/graphene", function(exports, require, module) {
           this.vis.append("div").attr("class", "label").text(this.title);
         }
         this.model.bind('change', this.render);
-        return console.log("GL view ");
+        if (this.debug_) return console.log("GL view ");
       };
 
       GaugeLabelView.prototype.by_type = function(d) {
@@ -801,7 +814,7 @@ window.require.register("lib/graphene", function(exports, require, module) {
         var data, datum, metric, metric_items, vis,
           _this = this;
         data = this.model.get('data');
-        console.log(data);
+        if (this.debug_) console.log(data);
         datum = data && data.length > 0 ? data[0] : {
           ymax: this.null_value,
           ymin: this.null_value,
@@ -859,13 +872,15 @@ window.require.register("lib/graphene", function(exports, require, module) {
         this.value_format = this.options.value_format || ".3s";
         this.value_format = d3.format(this.value_format);
         this.model.bind('change', this.render);
-        return console.log("TS view: " + this.width + "x" + this.height + " padding:" + this.padding + " animate: " + this.animate_ms + " labels: " + this.num_labels);
+        if (this.debug_) {
+          return console.log("TS view: " + this.width + "x" + this.height + " padding:" + this.padding + " animate: " + this.animate_ms + " labels: " + this.num_labels);
+        }
       };
 
       TimeSeriesView.prototype.render = function() {
         var area, d, data, dmax, dmin, leg_items, line, litem_enters, litem_enters_text, order, points, title, vis, x, xAxis, xmax, xmin, xpoints, xtick_sz, y, yAxis, _ref,
           _this = this;
-        console.log("rendering.");
+        if (this.debug_) console.log("rendering.");
         data = this.model.get('data');
         data = data && data.length > 0 ? data : [
           {
@@ -1056,7 +1071,7 @@ window.require.register("lib/graphene", function(exports, require, module) {
         }).attr("class", "h-col-1 area");
         vis.transition().ease("linear").duration(this.animate_ms).select(".x.axis").call(xAxis);
         vis.select(".y.axis").call(yAxis);
-        return console.log("done drawing");
+        if (this.debug_) return console.log("done drawing");
       };
 
       return BarChartView;
@@ -1185,6 +1200,21 @@ window.require.register("lib/view_helper", function(exports, require, module) {
         }
         return _results;
       })();
+      return markup;
+    });
+
+    Handlebars.registerHelper('profileList', function(value, options) {
+      var markup,
+        _this = this;
+      markup = '';
+      window.RpiApp.controller_.profiles_.each(function(profile) {
+        var id, name, selected;
+        id = profile.get('_id');
+        name = profile.get('name');
+        selected = '';
+        if (value === id) selected = ' selected="selected"';
+        return markup = markup + '<option value="' + id + '"' + selected + '>' + name + '</option>';
+      });
       return markup;
     });
 
@@ -1660,7 +1690,7 @@ window.require.register("views/GraphCollectionView", function(exports, require, 
 });
 window.require.register("views/GraphLayout", function(exports, require, module) {
   (function() {
-    var GraphLayout, HeaterView, SampleView, application,
+    var GraphLayout, HeaterView, ProfileModalView, ProfileSelectorView, SampleView, application,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
@@ -1670,6 +1700,10 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
     HeaterView = require('views/HeaterView');
 
     SampleView = require('views/SampleView');
+
+    ProfileModalView = require('views/ProfileModalView');
+
+    ProfileSelectorView = require('views/ProfileSelectorView');
 
     module.exports = GraphLayout = (function(_super) {
 
@@ -1702,23 +1736,37 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
       };
 
       GraphLayout.prototype.initialize = function(options) {
-        var fermenterId,
+        var updateProfileCallback,
           _this = this;
-        application.vent.on('Profiles:Loaded', this.updateProfileData);
+        updateProfileCallback = function() {
+          return _this.updateProfileData(true);
+        };
+        application.vent.on('Profiles:Loaded', updateProfileCallback);
+        application.vent.on('Profile:Modified', updateProfileCallback);
+        this.updateProfileData(false);
+      };
+
+      GraphLayout.prototype.updateProfileData = function(rerender) {
+        var activeProfile, fermenterId, label,
+          _this = this;
         fermenterId = this.model.get('fermenterId');
+        activeProfile = null;
         application.controller_.profiles_.each(function(profile) {
           var active, sensor;
           sensor = profile.get('sensor');
           active = profile.get('active');
           if (sensor === fermenterId && active === true) {
             _this.model.set('profile', profile);
-            return _this.model.set('profileName', profile.get('name'));
+            _this.model.set('profileName', profile.get('name'));
+            return activeProfile = profile;
           }
         });
-      };
-
-      GraphLayout.prototype.updateProfileData = function() {
-        return console.log('update profile data');
+        if (activeProfile === null) {
+          label = this.model.get('sensorLabel');
+          this.model.set('profileName', label);
+          this.model.set('profile', null);
+        }
+        if (rerender === true) return this.render();
       };
 
       GraphLayout.prototype.onRender = function() {
@@ -1744,7 +1792,7 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
         sampleView = new SampleView(options);
         this.sampleRegion.show(sampleView);
         profile = this.model.get('profile');
-        if (profile === void 0) {
+        if (profile === void 0 || profile === null) {
           this.ui.editButton.hide();
           this.ui.profileButton.text('[set profile]');
         }
@@ -1765,12 +1813,26 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
       };
 
       GraphLayout.prototype.editProfile = function(e) {
-        console.log('edit profile');
+        var modal, model, options;
+        model = this.model.get('profile');
+        options = {
+          model: model,
+          application: application
+        };
+        modal = new ProfileModalView(options);
+        application.layout.modal.show(modal);
         return false;
       };
 
       GraphLayout.prototype.changeProfile = function(e) {
-        console.log('change profile');
+        var fermenterId, modal, options;
+        fermenterId = this.model.get('fermenterId');
+        options = {
+          application: application,
+          fermenterId: fermenterId
+        };
+        modal = new ProfileSelectorView(options);
+        application.layout.modal.show(modal);
         return false;
       };
 
@@ -1809,6 +1871,12 @@ window.require.register("views/HeaterView", function(exports, require, module) {
         HeaterView.__super__.constructor.apply(this, arguments);
       }
 
+      HeaterView.prototype.fermenterId = null;
+
+      HeaterView.prototype.app = null;
+
+      HeaterView.prototype.graphModel = null;
+
       HeaterView.prototype.template = template;
 
       HeaterView.prototype.events = {
@@ -1833,25 +1901,31 @@ window.require.register("views/HeaterView", function(exports, require, module) {
           gpio: options.gpio
         };
         this.model = new HeaterModel(modelOptions);
+        this.app.vent.on('Heater:State', function(data) {
+          if (data.sensor === _this.fermenterId) {
+            return _this.setHeaterState(data.state);
+          }
+        });
         this.app.vent.on('Heater:Changed', function(data) {
           if (data.sensor === _this.fermenterId) {
             return _this.setHeaterState(data.state);
           }
         });
+        this.app.controller_.socket_.emit('getgpio', this.fermenterId);
       };
 
       HeaterView.prototype.onRender = function() {
         var overrides, profile;
         profile = this.graphModel.get('profile');
-        if (profile === void 0) {
+        if (profile === void 0 || profile === null) {
           this.ui.overrideResume.hide();
           return;
         }
         overrides = profile.get('overrides');
         if (overrides.length > 0 && overrides[overrides.length - 1].action === 'resume') {
-          return this.ui.overrideResume.show();
-        } else {
           return this.ui.overrideResume.hide();
+        } else {
+          return this.ui.overrideResume.show();
         }
       };
 
@@ -1881,14 +1955,16 @@ window.require.register("views/HeaterView", function(exports, require, module) {
           value = false;
         }
         profile = this.graphModel.get('profile');
-        overrides = profile.get('overrides');
-        override = {
-          action: newState,
-          time: new Date()
-        };
-        overrides.push(override);
-        profile.set('overrides', overrides);
-        profile.save();
+        if (profile !== void 0 && profile !== null) {
+          overrides = profile.get('overrides');
+          override = {
+            action: newState,
+            time: new Date()
+          };
+          overrides.push(override);
+          profile.set('overrides', overrides);
+          profile.save();
+        }
         this.setHeaterState(value);
         this.app.controller_.socket_.emit('setgpio', this.fermenterId, value);
         return false;
@@ -2264,10 +2340,96 @@ window.require.register("views/ProfileModalView", function(exports, require, mod
           return _this.app.vent.trigger('Profile:Modified');
         });
         this.model.save();
-        return this.app.layout.modal.close();
+        this.app.layout.modal.close();
+        return false;
       };
 
       return ProfileModalView;
+
+    })(Backbone.Marionette.ItemView);
+
+  }).call(this);
+  
+});
+window.require.register("views/ProfileSelectorView", function(exports, require, module) {
+  (function() {
+    var ProfileModel, ProfileSelectorView, template,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    template = require('./templates/profileSelector');
+
+    ProfileModel = require('models/profileModel');
+
+    module.exports = ProfileSelectorView = (function(_super) {
+
+      __extends(ProfileSelectorView, _super);
+
+      function ProfileSelectorView() {
+        this.saveActiveProfile = __bind(this.saveActiveProfile, this);
+        this.initialize = __bind(this.initialize, this);
+        ProfileSelectorView.__super__.constructor.apply(this, arguments);
+      }
+
+      ProfileSelectorView.prototype.id = 'profile-modal-view';
+
+      ProfileSelectorView.prototype.fermenterId = null;
+
+      ProfileSelectorView.prototype.template = template;
+
+      ProfileSelectorView.prototype.events = {
+        'click #save-active-profile': 'saveActiveProfile'
+      };
+
+      ProfileSelectorView.prototype.initialize = function(options) {
+        this.app = options.application;
+        return this.fermenterId = options.fermenterId;
+      };
+
+      ProfileSelectorView.prototype.saveActiveProfile = function(e) {
+        var activeId,
+          _this = this;
+        activeId = $('#profile-input-id').val();
+        console.log('active id:');
+        console.log(activeId);
+        this.app.controller_.profiles_.each(function(profile) {
+          var id, modified, oldState, sensor;
+          id = profile.get('_id');
+          modified = false;
+          oldState = profile.get('active');
+          sensor = profile.get('sensor');
+          console.log('old state:');
+          console.log(oldState);
+          console.log('id:');
+          console.log(id);
+          console.log('profile:');
+          console.log(profile);
+          if (id === activeId) {
+            if (oldState !== true || sensor !== _this.fermenterId) {
+              profile.set('active', true);
+              profile.set('sensor', _this.fermenterId);
+              modified = true;
+            }
+          } else {
+            if (oldState === true && sensor === _this.fermenterId) {
+              profile.set('active', false);
+              modified = true;
+            }
+          }
+          if (modified === true) {
+            console.log('was modified');
+            profile.once('sync', function() {
+              return _this.app.vent.trigger('Profile:Modified');
+            });
+            return profile.save();
+          }
+        });
+        this.app.layout.modal.close();
+        return false;
+      };
+
+      return ProfileSelectorView;
 
     })(Backbone.Marionette.ItemView);
 
@@ -2704,6 +2866,31 @@ window.require.register("views/templates/profileModal", function(exports, requir
     else { stack1 = blockHelperMissing.call(depth0, stack2, stack1, tmp1); }
     if(stack1 || stack1 === 0) { buffer += stack1; }
     buffer += "\n					</select>\n				</div>\n			</div>\n		</form>\n	</div>\n	<div class=\"modal-footer\">\n		<button class=\"btn\" data-dismiss=\"modal\" aria-hidden=\"true\">Close</button>\n		<button id=\"save-profile\" class=\"btn btn-primary\">Save changes</button>\n	</div>\n</div>";
+    return buffer;});
+});
+window.require.register("views/templates/profileSelector", function(exports, require, module) {
+  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+    helpers = helpers || Handlebars.helpers;
+    var buffer = "", stack1, stack2, foundHelper, tmp1, self=this, functionType="function", blockHelperMissing=helpers.blockHelperMissing;
+
+  function program1(depth0,data) {
+    
+    
+    return "\n						";}
+
+    buffer += "<div id=\"profile-selector-modal\">\n	<div class=\"modal-header\">\n		<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">×</button>\n		<h3 id=\"profileSelectorModalLabel\">Select Fermentation Profile</h3>\n	</div>\n	<div class=\"modal-body\">\n		<form class=\"form-horizontal\" id=\"profile-selector-form\">\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"profile-input-id\">Profile</label>\n				<div class=\"controls\">\n					<select id=\"profile-input-id\">\n						";
+    foundHelper = helpers.profile;
+    stack1 = foundHelper || depth0.profile;
+    foundHelper = helpers.profileList;
+    stack2 = foundHelper || depth0.profileList;
+    tmp1 = self.program(1, program1, data);
+    tmp1.hash = {};
+    tmp1.fn = tmp1;
+    tmp1.inverse = self.noop;
+    if(foundHelper && typeof stack2 === functionType) { stack1 = stack2.call(depth0, stack1, tmp1); }
+    else { stack1 = blockHelperMissing.call(depth0, stack2, stack1, tmp1); }
+    if(stack1 || stack1 === 0) { buffer += stack1; }
+    buffer += "\n					</select>\n				</div>\n			</div>\n	</div>\n	<div class=\"modal-footer\">\n		<button class=\"btn\" data-dismiss=\"modal\" aria-hidden=\"true\">Close</button>\n		<button id=\"save-active-profile\" class=\"btn\">Save changes</button>\n	</div>\n</div>";
     return buffer;});
 });
 window.require.register("views/templates/profilesLayout", function(exports, require, module) {

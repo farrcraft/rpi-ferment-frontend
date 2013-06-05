@@ -1,9 +1,11 @@
 # rpi-ferment-frontend
 # Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
 
-application = require 'application'
-HeaterView 	= require 'views/HeaterView'
-SampleView 	= require 'views/SampleView'
+application 	 	= require 'application'
+HeaterView 		 	= require 'views/HeaterView'
+SampleView 		 	= require 'views/SampleView'
+ProfileModalView 	= require 'views/ProfileModalView'
+ProfileSelectorView = require 'views/ProfileSelectorView'
 
 module.exports = class GraphLayout extends Backbone.Marionette.Layout
 	template: require('views/templates/graphLayout')
@@ -20,19 +22,29 @@ module.exports = class GraphLayout extends Backbone.Marionette.Layout
 
 
 	initialize: (options) =>
-		application.vent.on 'Profiles:Loaded', @updateProfileData
+		updateProfileCallback = () =>
+			@updateProfileData true			
+		application.vent.on 'Profiles:Loaded', updateProfileCallback
+		application.vent.on 'Profile:Modified', updateProfileCallback
+		@updateProfileData false
+		return
 
+	updateProfileData: (rerender) =>
 		fermenterId = @model.get 'fermenterId'
+		activeProfile = null
 		application.controller_.profiles_.each (profile) =>
 			sensor = profile.get 'sensor'
 			active = profile.get 'active'
 			if sensor is fermenterId and active is true
 				@model.set 'profile', profile
 				@model.set 'profileName', profile.get 'name'
-		return
-
-	updateProfileData: () =>
-		console.log 'update profile data'
+				activeProfile = profile
+		if activeProfile is null
+			label = @model.get 'sensorLabel'
+			@model.set 'profileName', label
+			@model.set 'profile', null
+		if rerender is true
+			@render()
 
 	onRender: () =>
 		fermenterId = @model.get 'fermenterId'
@@ -63,7 +75,7 @@ module.exports = class GraphLayout extends Backbone.Marionette.Layout
 		@sampleRegion.show sampleView
 
 		profile = @model.get 'profile'
-		if profile is undefined
+		if profile is undefined or profile is null
 			@ui.editButton.hide()
 			@ui.profileButton.text '[set profile]'
 		return
@@ -81,13 +93,24 @@ module.exports = class GraphLayout extends Backbone.Marionette.Layout
 		return
 
 	editProfile: (e) =>
-		console.log 'edit profile'
+		model = @model.get 'profile'
+		options =
+			model: model
+			application: application
+		modal = new ProfileModalView options
+		application.layout.modal.show modal
 		false
 
 	changeProfile: (e) =>
-		console.log 'change profile'
+		fermenterId = @model.get 'fermenterId'
+		options = 
+			application: application
+			fermenterId: fermenterId
+		modal = new ProfileSelectorView options
+		application.layout.modal.show modal
 		false
 
+	# Not implemented...
 	showHistory: (e) =>
 		console.log 'show history'
 		false

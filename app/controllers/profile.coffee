@@ -3,6 +3,8 @@ ProfileModel 		= require 'models/profileModel'
 ProfileCollection 	= require 'models/profileCollection'
 
 module.exports = class ProfileController extends Backbone.Marionette.Controller
+	socket_: null
+
 	initialize: (options) =>
 		@app = options.application
 
@@ -53,13 +55,13 @@ module.exports = class ProfileController extends Backbone.Marionette.Controller
 			@config_ = config
 			@app.vent.trigger 'Socket:Config', config
 		@socket_.on 'pv', (data) =>
-			@app.vent.trigger 'Socket:PV'
-			console.log 'new pv'
+			@app.vent.trigger 'Socket:PV', data
 		@socket_.on 'setsv', (data) =>
-			@app.vent.trigger 'Socket:SV'
-			console.log 'new sv'
+			@app.vent.trigger 'Socket:SV', data
 		@socket_.on 'mode', (data) =>
 			@app.vent.trigger 'Socket:Mode', data
+		@socket_.on 'getgpio', (data) =>
+			@app.vent.trigger 'Heater:State', data
 		@socket_.on 'setgpio', (data) =>
 			@app.vent.trigger 'Heater:Changed', data
 		@socket_.emit 'config'

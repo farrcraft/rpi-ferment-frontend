@@ -26,3 +26,4 @@ module.exports = class ProfileModalView extends Backbone.Marionette.ItemView
 			@app.vent.trigger 'Profile:Modified'
 		@model.save()
 		@app.layout.modal.close()
+		false

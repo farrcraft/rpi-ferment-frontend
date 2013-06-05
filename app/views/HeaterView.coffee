@@ -6,6 +6,10 @@ HeaterModel = require 'models/heaterModel'
 
 # View for displaying heater indicator and heater override controls
 module.exports = class HeaterView extends Backbone.Marionette.ItemView
+	fermenterId: null
+	app: null
+	graphModel: null
+
 	template: template
 	events:
 		'click .heaterOverride': 'heaterOverride'
@@ -23,22 +27,26 @@ module.exports = class HeaterView extends Backbone.Marionette.ItemView
 			fermenterId: @fermenterId
 			gpio: options.gpio
 		@model = new HeaterModel modelOptions
-
+		@app.vent.on 'Heater:State', (data) =>
+			if data.sensor is @fermenterId
+				@setHeaterState data.state
 		@app.vent.on 'Heater:Changed', (data) =>
 			if data.sensor is @fermenterId
 				@setHeaterState data.state
+		# request current GPIO state
+		@app.controller_.socket_.emit 'getgpio', @fermenterId
 		return
 
 	onRender: () ->
 		profile = @graphModel.get 'profile'
-		if profile is undefined
+		if profile is undefined or profile is null
 			@ui.overrideResume.hide()
 			return
 		overrides = profile.get 'overrides'
 		if overrides.length > 0 and overrides[overrides.length - 1].action is 'resume'
-			@ui.overrideResume.show()
-		else
 			@ui.overrideResume.hide()
+		else
+			@ui.overrideResume.show()
 
 
 	# Update the heater indicator and control UI 
@@ -68,13 +76,14 @@ module.exports = class HeaterView extends Backbone.Marionette.ItemView
 			value = false
 
 		profile = @graphModel.get 'profile'
-		overrides = profile.get 'overrides'
-		override = 
-			action: newState
-			time: new Date()
-		overrides.push override
-		profile.set 'overrides', overrides
-		profile.save()
+		if profile isnt undefined and profile isnt null
+			overrides = profile.get 'overrides'
+			override = 
+				action: newState
+				time: new Date()
+			overrides.push override
+			profile.set 'overrides', overrides
+			profile.save()
 
 		@setHeaterState value
 		@app.controller_.socket_.emit 'setgpio', @fermenterId, value
