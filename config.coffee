@@ -16,6 +16,7 @@ exports.config =
           'vendor/scripts/bootstrap.js'
           'vendor/scripts/socket.io.js'
           'vendor/scripts/d3.js'
+          'vendor/scripts/moment.js'
         ]
 
     stylesheets:

@@ -1218,6 +1218,16 @@ window.require.register("lib/view_helper", function(exports, require, module) {
       return markup;
     });
 
+    Handlebars.registerHelper('dateFormat', function(context, block) {
+      var f;
+      if (window.moment) {
+        f = block.hash.format || "MMM Do, YYYY";
+        return moment(context).format(f);
+      } else {
+        return context;
+      }
+    });
+
   }).call(this);
   
 });
@@ -2353,14 +2363,12 @@ window.require.register("views/ProfileModalView", function(exports, require, mod
 });
 window.require.register("views/ProfileSelectorView", function(exports, require, module) {
   (function() {
-    var ProfileModel, ProfileSelectorView, template,
+    var ProfileSelectorView, template,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
     template = require('./templates/profileSelector');
-
-    ProfileModel = require('models/profileModel');
 
     module.exports = ProfileSelectorView = (function(_super) {
 
@@ -2391,20 +2399,12 @@ window.require.register("views/ProfileSelectorView", function(exports, require, 
         var activeId,
           _this = this;
         activeId = $('#profile-input-id').val();
-        console.log('active id:');
-        console.log(activeId);
         this.app.controller_.profiles_.each(function(profile) {
           var id, modified, oldState, sensor;
           id = profile.get('_id');
           modified = false;
           oldState = profile.get('active');
           sensor = profile.get('sensor');
-          console.log('old state:');
-          console.log(oldState);
-          console.log('id:');
-          console.log(id);
-          console.log('profile:');
-          console.log(profile);
           if (id === activeId) {
             if (oldState !== true || sensor !== _this.fermenterId) {
               profile.set('active', true);
@@ -2418,7 +2418,6 @@ window.require.register("views/ProfileSelectorView", function(exports, require, 
             }
           }
           if (modified === true) {
-            console.log('was modified');
             profile.once('sync', function() {
               return _this.app.vent.trigger('Profile:Modified');
             });
@@ -2800,15 +2799,36 @@ window.require.register("views/templates/profile", function(exports, require, mo
 window.require.register("views/templates/profileDetail", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
-    var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
+    var buffer = "", stack1, stack2, foundHelper, tmp1, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
+  function program1(depth0,data) {
+    
+    var buffer = "", stack1, stack2, stack3;
+    buffer += "\n		<li>";
+    stack1 = depth0.time;
+    stack2 = {};
+    stack3 = "MMMM Do YYYY, h:mm a";
+    stack2['format'] = stack3;
+    foundHelper = helpers.dateFormat;
+    stack3 = foundHelper || depth0.dateFormat;
+    tmp1 = {};
+    tmp1.hash = stack2;
+    if(typeof stack3 === functionType) { stack1 = stack3.call(depth0, stack1, tmp1); }
+    else if(stack3=== undef) { stack1 = helperMissing.call(depth0, "dateFormat", stack1, tmp1); }
+    else { stack1 = stack3; }
+    buffer += escapeExpression(stack1) + " - ";
+    stack1 = depth0.action;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "this.action", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "</li>\n	";
+    return buffer;}
 
     buffer += "<h2>";
     foundHelper = helpers.name;
     stack1 = foundHelper || depth0.name;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "name", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</h2>\n<hr />\n<div class=\"row\">\n	<div class=\"span1\">\n		<strong>Sensor:</strong><br />\n		<strong>Control Mode:</strong><br />\n	</div>\n	<div class=\"span2\">\n		";
+    buffer += escapeExpression(stack1) + "</h2>\n<hr />\n<div class=\"row\">\n	<div class=\"span2\">\n		<strong>Sensor:</strong><br />\n		<strong>Control Mode:</strong><br />\n	</div>\n	<div class=\"span2\">\n		";
     foundHelper = helpers.sensor;
     stack1 = foundHelper || depth0.sensor;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
@@ -2818,7 +2838,17 @@ window.require.register("views/templates/profileDetail", function(exports, requi
     stack1 = foundHelper || depth0.control_mode;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "control_mode", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "<br />\n	</div>\n</div>\n<br />\n<button class=\"edit\" href=\"#\">Edit Profile</button>\n<hr />\n<h4>Steps</h4>\n<ol id=\"steps\">\n</ol>\n<br />\n<button class=\"add-step\" class=\"btn btn-mini\">Add Step</button>\n";
+    buffer += escapeExpression(stack1) + "<br />\n	</div>\n</div>\n<br />\n<button class=\"edit\" href=\"#\">Edit Profile</button>\n<hr />\n<h4>Steps</h4>\n<ol id=\"steps\">\n</ol>\n<br />\n<button class=\"add-step\" class=\"btn btn-mini\">Add Step</button>\n<hr />\n<h4>Override History</h4>\n<ul id=\"overrides\">\n	";
+    foundHelper = helpers.overrides;
+    stack1 = foundHelper || depth0.overrides;
+    stack2 = helpers.each;
+    tmp1 = self.program(1, program1, data);
+    tmp1.hash = {};
+    tmp1.fn = tmp1;
+    tmp1.inverse = self.noop;
+    stack1 = stack2.call(depth0, stack1, tmp1);
+    if(stack1 || stack1 === 0) { buffer += stack1; }
+    buffer += "\n</ul>\n\n";
     return buffer;});
 });
 window.require.register("views/templates/profileModal", function(exports, require, module) {
@@ -2954,6 +2984,21 @@ window.require.register("views/templates/step", function(exports, require, modul
     stack1 = foundHelper || depth0.name;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "name", { hash: {} }); }
+    buffer += escapeExpression(stack1) + " - ";
+    foundHelper = helpers.duration;
+    stack1 = foundHelper || depth0.duration;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "duration", { hash: {} }); }
+    buffer += escapeExpression(stack1) + " ";
+    foundHelper = helpers.unit;
+    stack1 = foundHelper || depth0.unit;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "unit", { hash: {} }); }
+    buffer += escapeExpression(stack1) + " @ ";
+    foundHelper = helpers.temperature;
+    stack1 = foundHelper || depth0.temperature;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "temperature", { hash: {} }); }
     buffer += escapeExpression(stack1) + " <a class=\"edit-step\" href=\"#\">edit</a> <a class=\"delete-step\" href=\"#\">delete</a></li>\n";
     return buffer;});
 });

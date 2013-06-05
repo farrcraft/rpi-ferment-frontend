@@ -24,7 +24,6 @@ module.exports = class ProfileDetailView extends Backbone.Marionette.CompositeVi
 		initialize: (options) =>
 			@app = options.application
 			@loadSteps()
-
 			@app.vent.on 'Profile:Modified', () =>
 				@model.fetch
 					success: () =>

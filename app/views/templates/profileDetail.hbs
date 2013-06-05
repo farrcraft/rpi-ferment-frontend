@@ -1,7 +1,7 @@
 <h2>{{name}}</h2>
 <hr />
 <div class="row">
-	<div class="span1">
+	<div class="span2">
 		<strong>Sensor:</strong><br />
 		<strong>Control Mode:</strong><br />
 	</div>
@@ -18,3 +18,11 @@
 </ol>
 <br />
 <button class="add-step" class="btn btn-mini">Add Step</button>
+<hr />
+<h4>Override History</h4>
+<ul id="overrides">
+	{{#each overrides}}
+		<li>{{dateFormat this.time format="MMMM Do YYYY, h:mm a"}} - {{this.action}}</li>
+	{{/each}}
+</ul>
+
