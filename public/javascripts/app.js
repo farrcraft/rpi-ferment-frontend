@@ -1587,16 +1587,18 @@ window.require.register("views/FermentationStepModalView", function(exports, req
       };
 
       FermentationStepModalView.prototype.saveStep = function(e) {
-        var step, steps,
+        var oldOrder, step, steps,
           _this = this;
-        step = {
-          name: $('#step-input-name').val(),
-          duration: $('#step-input-duration').val(),
-          temperature: $('#step-input-temperature').val(),
-          order: $('#step-input-order').val()
-        };
+        oldOrder = $('step-input-old-order').val();
         steps = this.profile_.get('steps');
+        step = {};
+        if ($.isNumeric(oldOrder)) step = steps[oldOrder - 1];
+        step.name = $('#step-input-name').val();
+        step.duration = $('#step-input-duration').val();
+        step.temperature = $('#step-input-temperature').val();
+        step.order = orderInput.val();
         steps[step.order - 1] = step;
+        if (step.order !== oldOrder) steps.splice(oldOrder - 1, 1);
         this.profile_.set({
           steps: steps
         });
