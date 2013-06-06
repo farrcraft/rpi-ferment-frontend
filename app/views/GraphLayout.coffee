@@ -19,6 +19,7 @@ module.exports = class GraphLayout extends Backbone.Marionette.Layout
 		profileLabel: '.activeProfile'
 		profileButton: '.changeProfile'
 		editButton: '.editProfile'
+		stepLabel: '.activeStep'
 
 
 	initialize: (options) =>
@@ -39,6 +40,16 @@ module.exports = class GraphLayout extends Backbone.Marionette.Layout
 				@model.set 'profile', profile
 				@model.set 'profileName', profile.get 'name'
 				activeProfile = profile
+				activeStep = false
+				steps = profile.get 'steps'
+				step = for step in steps
+					if step.active is true
+						@model.set 'activeStep', step.name
+						activeStep = true
+						break
+				if activeStep is false
+					@model.set 'activeStep', '[No Active Step]'
+				return
 		if activeProfile is null
 			label = @model.get 'sensorLabel'
 			@model.set 'profileName', label

@@ -12,19 +12,28 @@ module.exports = class FermentationStepModalView extends Backbone.Marionette.Ite
 		'click #save-step': 'saveStep'
 	ui:
 		orderInput: '#step-input-order'
+		oldOrderInput: '#step-input-old-order'
 
 	initialize: (options) ->
 		@profile_ = options.profile
 		@app = options.application
 
 	onRender: () ->
+		# set spinner to current order if updating or the next order value sequence if adding
+		oldOrder = @ui.oldOrderInput.val()
+		if $.isNumeric oldOrder
+			nextOrder = oldOrder
+		else
+			steps = @profile_.get 'steps'
+			nextOrder = steps.length + 1
 		# enable numeric spinner control for step order form input
 		spinOptions =
 			minimum: 1
+			value: nextOrder
 		@ui.orderInput.spinedit spinOptions
 
 	saveStep: (e) =>
-		oldOrder = $('step-input-old-order').val()
+		oldOrder = @ui.oldOrderInput.val()
 		steps = @profile_.get 'steps'
 		step = {}
 
@@ -35,12 +44,12 @@ module.exports = class FermentationStepModalView extends Backbone.Marionette.Ite
 		step.name = $('#step-input-name').val()
 		step.duration = $('#step-input-duration').val()
 		step.temperature = $('#step-input-temperature').val()
-		step.order = orderInput.val()
+		step.order = @ui.orderInput.val()
 
 		steps[step.order - 1] = step
 
 		# remove old step if updating to a new position
-		if step.order isnt oldOrder
+		if $.isNumeric oldOrder and step.order isnt oldOrder
 			steps.splice oldOrder - 1, 1
 
 		@profile_.set steps: steps

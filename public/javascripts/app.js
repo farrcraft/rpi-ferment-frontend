@@ -1570,7 +1570,8 @@ window.require.register("views/FermentationStepModalView", function(exports, req
       };
 
       FermentationStepModalView.prototype.ui = {
-        orderInput: '#step-input-order'
+        orderInput: '#step-input-order',
+        oldOrderInput: '#step-input-old-order'
       };
 
       FermentationStepModalView.prototype.initialize = function(options) {
@@ -1579,9 +1580,17 @@ window.require.register("views/FermentationStepModalView", function(exports, req
       };
 
       FermentationStepModalView.prototype.onRender = function() {
-        var spinOptions;
+        var nextOrder, oldOrder, spinOptions, steps;
+        oldOrder = this.ui.oldOrderInput.val();
+        if ($.isNumeric(oldOrder)) {
+          nextOrder = oldOrder;
+        } else {
+          steps = this.profile_.get('steps');
+          nextOrder = steps.length + 1;
+        }
         spinOptions = {
-          minimum: 1
+          minimum: 1,
+          value: nextOrder
         };
         return this.ui.orderInput.spinedit(spinOptions);
       };
@@ -1589,16 +1598,18 @@ window.require.register("views/FermentationStepModalView", function(exports, req
       FermentationStepModalView.prototype.saveStep = function(e) {
         var oldOrder, step, steps,
           _this = this;
-        oldOrder = $('step-input-old-order').val();
+        oldOrder = this.ui.oldOrderInput.val();
         steps = this.profile_.get('steps');
         step = {};
         if ($.isNumeric(oldOrder)) step = steps[oldOrder - 1];
         step.name = $('#step-input-name').val();
         step.duration = $('#step-input-duration').val();
         step.temperature = $('#step-input-temperature').val();
-        step.order = orderInput.val();
+        step.order = this.ui.orderInput.val();
         steps[step.order - 1] = step;
-        if (step.order !== oldOrder) steps.splice(oldOrder - 1, 1);
+        if ($.isNumeric(oldOrder && step.order !== oldOrder)) {
+          steps.splice(oldOrder - 1, 1);
+        }
         this.profile_.set({
           steps: steps
         });
@@ -1756,7 +1767,8 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
       GraphLayout.prototype.ui = {
         profileLabel: '.activeProfile',
         profileButton: '.changeProfile',
-        editButton: '.editProfile'
+        editButton: '.editProfile',
+        stepLabel: '.activeStep'
       };
 
       GraphLayout.prototype.initialize = function(options) {
@@ -1776,13 +1788,33 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
         fermenterId = this.model.get('fermenterId');
         activeProfile = null;
         application.controller_.profiles_.each(function(profile) {
-          var active, sensor;
+          var active, activeStep, sensor, step, steps;
           sensor = profile.get('sensor');
           active = profile.get('active');
           if (sensor === fermenterId && active === true) {
             _this.model.set('profile', profile);
             _this.model.set('profileName', profile.get('name'));
-            return activeProfile = profile;
+            activeProfile = profile;
+            activeStep = false;
+            steps = profile.get('steps');
+            step = (function() {
+              var _i, _len, _results;
+              _results = [];
+              for (_i = 0, _len = steps.length; _i < _len; _i++) {
+                step = steps[_i];
+                if (step.active === true) {
+                  this.model.set('activeStep', step.name);
+                  activeStep = true;
+                  break;
+                } else {
+                  _results.push(void 0);
+                }
+              }
+              return _results;
+            }).call(_this);
+            if (activeStep === false) {
+              _this.model.set('activeStep', '[No Active Step]');
+            }
           }
         });
         if (activeProfile === null) {
@@ -2738,7 +2770,12 @@ window.require.register("views/templates/graphLayout", function(exports, require
     stack1 = foundHelper || depth0.profileName;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "profileName", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</h4>\n		<div>\n			<a class=\"editProfile\" href=\"#\">[edit profile]</a>\n			<a class=\"changeProfile\" href=\"#\">[change profile]</a>\n		</div>\n		<br />\n		<div id=\"";
+    buffer += escapeExpression(stack1) + "</h4>\n		<h6 class=\"activeStep\">";
+    foundHelper = helpers.activeStep;
+    stack1 = foundHelper || depth0.activeStep;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "activeStep", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "</h6>\n		<div>\n			<a class=\"editProfile\" href=\"#\">[edit profile]</a>\n			<a class=\"changeProfile\" href=\"#\">[change profile]</a>\n		</div>\n		<br />\n		<div id=\"";
     foundHelper = helpers.fermenterId;
     stack1 = foundHelper || depth0.fermenterId;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
