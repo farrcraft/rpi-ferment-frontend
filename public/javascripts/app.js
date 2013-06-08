@@ -2765,17 +2765,17 @@ window.require.register("views/templates/graphLayout", function(exports, require
     stack1 = foundHelper || depth0.fermenterId;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "_graphRegion\"></div>\n		<h4 class=\"activeProfile\">Fermenting: ";
+    buffer += escapeExpression(stack1) + "_graphRegion\"></div>\n		<div class=\"graph-profile-heading\">Fermenting: <span class=\"activeProfile\">";
     foundHelper = helpers.profileName;
     stack1 = foundHelper || depth0.profileName;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "profileName", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</h4>\n		<h6 class=\"activeStep\">";
+    buffer += escapeExpression(stack1) + "</span> <a class=\"editProfile\" title=\"Edit\" href=\"#\"><i class=\"icon-pencil\"></i></a></div>\n		<h6 class=\"activeStep\">";
     foundHelper = helpers.activeStep;
     stack1 = foundHelper || depth0.activeStep;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "activeStep", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</h6>\n		<div>\n			<a class=\"editProfile\" href=\"#\">[edit profile]</a>\n			<a class=\"changeProfile\" href=\"#\">[change profile]</a>\n		</div>\n		<br />\n		<div id=\"";
+    buffer += escapeExpression(stack1) + "</h6>\n		<div>\n			<a class=\"changeProfile\" href=\"#\">[change profile]</a>\n		</div>\n		<br />\n		<div id=\"";
     foundHelper = helpers.fermenterId;
     stack1 = foundHelper || depth0.fermenterId;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
@@ -2844,12 +2844,12 @@ window.require.register("views/templates/profile", function(exports, require, mo
     stack1 = foundHelper || depth0.name;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "name", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</td>\n	<td><a class=\"edit\" href=\"#\">edit</a></td>\n	<td><a class=\"delete\" href=\"#\">delete</a></td>\n	<td><a class=\"activate\" href=\"#\">activate</a></td>\n	<td><a class=\"details\" href=\"#profile/";
+    buffer += escapeExpression(stack1) + "</td>\n	<td><a class=\"edit\" title=\"Edit\" href=\"#\"><i class=\"icon-edit\"></i></a></td>\n	<td><a class=\"delete\" title=\"Delete\" href=\"#\"><i class=\"icon-trash\"></i></a></td>\n	<td><a class=\"activate\" href=\"#\">activate</a></td>\n	<td><a class=\"details\" title=\"Details\" href=\"#profile/";
     foundHelper = helpers._id;
     stack1 = foundHelper || depth0._id;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "_id", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "\">details</a></td>\n</tr>\n";
+    buffer += escapeExpression(stack1) + "\"><i class=\"icon-ellipsis-horizontal\"></i></a></td>\n</tr>\n";
     return buffer;});
 });
 window.require.register("views/templates/profileDetail", function(exports, require, module) {
@@ -2894,7 +2894,7 @@ window.require.register("views/templates/profileDetail", function(exports, requi
     stack1 = foundHelper || depth0.control_mode;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "control_mode", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "<br />\n	</div>\n</div>\n<br />\n<button class=\"edit\" href=\"#\">Edit Profile</button>\n<hr />\n<h4>Steps</h4>\n<ol id=\"steps\">\n</ol>\n<br />\n<button class=\"add-step\" class=\"btn btn-mini\">Add Step</button>\n<hr />\n<h4>Override History</h4>\n<ul id=\"overrides\">\n	";
+    buffer += escapeExpression(stack1) + "<br />\n	</div>\n</div>\n<br />\n<button class=\"edit\" title=\"Edit Profile\"><i class=\"icon-edit\"></i> Edit Profile</button>\n<hr />\n<h4>Steps</h4>\n<ol id=\"steps\">\n</ol>\n<br />\n<button class=\"add-step\" title=\"Add Step\" class=\"btn btn-mini\"><i class=\"icon-plus\"></i> Add Step</button>\n<hr />\n<h4>Override History</h4>\n<ul id=\"overrides\">\n	";
     foundHelper = helpers.overrides;
     stack1 = foundHelper || depth0.overrides;
     stack2 = helpers.each;
@@ -3055,6 +3055,6 @@ window.require.register("views/templates/step", function(exports, require, modul
     stack1 = foundHelper || depth0.temperature;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "temperature", { hash: {} }); }
-    buffer += escapeExpression(stack1) + " <a class=\"edit-step\" href=\"#\">edit</a> <a class=\"delete-step\" href=\"#\">delete</a></li>\n";
+    buffer += escapeExpression(stack1) + " <a class=\"edit-step\" title=\"Edit\" href=\"#\"><i class=\"icon-edit\"></i></a> <a class=\"delete-step\" title=\"Delete\" href=\"#\"><i class=\"icon-trash\"></i></a></li>\n";
     return buffer;});
 });

@@ -30,6 +30,7 @@ exports.config =
           'vendor/styles/bootstrap-responsive.css'
           'vendor/styles/graphene.min.css'
           'vendor/styles/bootstrap-spinedit.css'
+          'vendor/styles/font-awesome.css'
         ]
         after: []
 
