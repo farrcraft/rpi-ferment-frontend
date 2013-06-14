@@ -251,6 +251,9 @@ window.require.register("controllers/profile", function(exports, require, module
         this.socket_.on('setgpio', function(data) {
           return _this.app.vent.trigger('Heater:Changed', data);
         });
+        this.socket_.on('setpv', function(data) {
+          return _this.app.vent.trigger('Sensor:PV', data);
+        });
         return this.socket_.emit('config');
       };
 
@@ -1218,6 +1221,17 @@ window.require.register("lib/view_helper", function(exports, require, module) {
       return markup;
     });
 
+    Handlebars.registerHelper('stepTemperature', function(start, end) {
+      var markup;
+      markup = '';
+      if (start === end) {
+        markup = start;
+      } else {
+        markup = start + '-' + end;
+      }
+      return markup;
+    });
+
     Handlebars.registerHelper('dateFormat', function(context, block) {
       var f;
       if (window.moment) {
@@ -1491,7 +1505,8 @@ window.require.register("models/stepModel", function(exports, require, module) {
       StepModel.prototype.defaults = {
         name: 'Fermentation Step',
         duration: 7,
-        temperature: 65,
+        start_temperature: 65,
+        end_temperature: 65,
         unit: 'days',
         order: 1,
         profile: {}
@@ -1507,6 +1522,7 @@ window.require.register("models/stepModel", function(exports, require, module) {
 window.require.register("views/AppLayout", function(exports, require, module) {
   (function() {
     var AppLayout, ModalRegion, template,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
@@ -1519,6 +1535,7 @@ window.require.register("views/AppLayout", function(exports, require, module) {
       __extends(AppLayout, _super);
 
       function AppLayout() {
+        this.initialize = __bind(this.initialize, this);
         AppLayout.__super__.constructor.apply(this, arguments);
       }
 
@@ -1530,6 +1547,19 @@ window.require.register("views/AppLayout", function(exports, require, module) {
         nav: "#nav",
         content: "#content",
         modal: ModalRegion
+      };
+
+      AppLayout.prototype.initialize = function(options) {
+        var _this = this;
+        this.app = options.application;
+        return this.app.vent.on('Sensor:PV', function(data) {
+          var display;
+          if (data.sensor === "ambient") {
+            display = data.pv.toFixed(2);
+            display = display + '&deg;';
+            return $('#ambient-display').html(display);
+          }
+        });
       };
 
       return AppLayout;
@@ -1604,7 +1634,8 @@ window.require.register("views/FermentationStepModalView", function(exports, req
         if ($.isNumeric(oldOrder)) step = steps[oldOrder - 1];
         step.name = $('#step-input-name').val();
         step.duration = $('#step-input-duration').val();
-        step.temperature = $('#step-input-temperature').val();
+        step.start_temperature = $('#step-input-start-temperature').val();
+        step.start_temperature = $('#step-input-end-temperature').val();
         step.order = this.ui.orderInput.val();
         steps[step.order - 1] = step;
         if ($.isNumeric(oldOrder && step.order !== oldOrder)) {
@@ -1752,6 +1783,7 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
         this.renderGraph = __bind(this.renderGraph, this);
         this.onRender = __bind(this.onRender, this);
         this.updateProfileData = __bind(this.updateProfileData, this);
+        this.updateSensorDisplay = __bind(this.updateSensorDisplay, this);
         this.initialize = __bind(this.initialize, this);
         GraphLayout.__super__.constructor.apply(this, arguments);
       }
@@ -1777,9 +1809,21 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
         updateProfileCallback = function() {
           return _this.updateProfileData(true);
         };
-        application.vent.on('Profiles:Loaded', updateProfileCallback);
-        application.vent.on('Profile:Modified', updateProfileCallback);
+        application.vent.on('Profiles:Loaded', this.updateProfileCallback);
+        application.vent.on('Profile:Modified', this.updateProfileCallback);
         this.updateProfileData(false);
+        application.vent.on('Sensor:PV', this.updateSensorDisplay);
+      };
+
+      GraphLayout.prototype.updateSensorDisplay = function(data) {
+        var display, fermenterId, selector;
+        fermenterId = this.model.get('fermenterId');
+        if (data.sensor === fermenterId) {
+          selector = '#' + fermenterId + '_sensorPV';
+          display = data.pv.toFixed(2);
+          display = display + '&deg;';
+          return $(selector).html(display);
+        }
       };
 
       GraphLayout.prototype.updateProfileData = function(rerender) {
@@ -2697,7 +2741,7 @@ window.require.register("views/templates/appLayout", function(exports, require, 
     var foundHelper, self=this;
 
 
-    return "<div id=\"nav\" class=\"navbar navbar-fixed-top\">\n	<div class=\"navbar-inner\">\n		<div class=\"container\">\n			<a class=\"brand\" href=\"#\">RPi Ferment</a>\n			<ul class=\"nav\">\n				<li><a id=\"profiles-nav\" href=\"#profiles\">Profiles</a></li>\n				<li><a id=\"new-profile-nav\" href=\"#\">New Profile</a></li>\n			</ul>\n		</div>\n	</div>\n</div>\n\n<div id=\"content\" class=\"container\"></div>\n<div id=\"modal\" class=\"modal hide fade\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"profileModalLabel\" aria-hidden=\"true\">\n</div>";});
+    return "<div id=\"nav\" class=\"navbar navbar-fixed-top\">\n	<div class=\"navbar-inner\">\n		<div class=\"container\">\n			<a class=\"brand\" href=\"#\">RPi Ferment</a>\n			<ul class=\"nav\">\n				<li><a id=\"profiles-nav\" href=\"#profiles\">Profiles</a></li>\n				<li><a id=\"new-profile-nav\" href=\"#\">New Profile</a></li>\n			</ul>\n			<p class=\"navbar-text pull-right\" title=\"Ambient Temperature\" id=\"ambient-display\"></p>\n		</div>\n	</div>\n</div>\n\n<div id=\"content\" class=\"container\"></div>\n<div id=\"modal\" class=\"modal hide fade\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"profileModalLabel\" aria-hidden=\"true\">\n</div>";});
 });
 window.require.register("views/templates/fermentationStepModal", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -2736,11 +2780,16 @@ window.require.register("views/templates/fermentationStepModal", function(export
     if(foundHelper && typeof stack2 === functionType) { stack1 = stack2.call(depth0, stack1, tmp1); }
     else { stack1 = blockHelperMissing.call(depth0, stack2, stack1, tmp1); }
     if(stack1 || stack1 === 0) { buffer += stack1; }
-    buffer += "\n					</select>\n				</div>\n			</div>\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"step-input-temperature\">Temperature</label>\n				<div class=\"controls\">\n					<input type=\"text\" id=\"step-input-temperature\" placeholder=\"Temperature\" value=\"";
-    foundHelper = helpers.temperature;
-    stack1 = foundHelper || depth0.temperature;
+    buffer += "\n					</select>\n				</div>\n			</div>\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"step-input-start-temperature\">Start Temperature</label>\n				<div class=\"controls\">\n					<input type=\"text\" id=\"step-input-start-temperature\" placeholder=\"Start Temperature\" value=\"";
+    foundHelper = helpers.start_temperature;
+    stack1 = foundHelper || depth0.start_temperature;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "temperature", { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "start_temperature", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\">\n				</div>\n			</div>\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"step-input-end-temperature\">End Temperature</label>\n				<div class=\"controls\">\n					<input type=\"text\" id=\"step-input-end-temperature\" placeholder=\"End Temperature\" value=\"";
+    foundHelper = helpers.end_temperature;
+    stack1 = foundHelper || depth0.end_temperature;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "end_temperature", { hash: {} }); }
     buffer += escapeExpression(stack1) + "\">\n				</div>\n			</div>\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"step-input-order\">Order</label>\n				<div class=\"controls\">\n					<input type=\"text\" id=\"step-input-order\" placeholder=\"Order\" value=\"";
     foundHelper = helpers.order;
     stack1 = foundHelper || depth0.order;
@@ -2775,7 +2824,12 @@ window.require.register("views/templates/graphLayout", function(exports, require
     stack1 = foundHelper || depth0.activeStep;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "activeStep", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</h6>\n		<div>\n			<a class=\"changeProfile\" href=\"#\">[change profile]</a>\n		</div>\n		<br />\n		<div id=\"";
+    buffer += escapeExpression(stack1) + "</h6>\n		<div>\n			<a class=\"changeProfile\" href=\"#\">[change profile]</a>\n		</div>\n		<br />\n		<strong>PV:</strong> <span id=\"";
+    foundHelper = helpers.fermenterId;
+    stack1 = foundHelper || depth0.fermenterId;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "_sensorPV\" title=\"Current PV\"></span>\n		<div id=\"";
     foundHelper = helpers.fermenterId;
     stack1 = foundHelper || depth0.fermenterId;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
@@ -3032,7 +3086,7 @@ window.require.register("views/templates/sample", function(exports, require, mod
 window.require.register("views/templates/step", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
-    var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
+    var buffer = "", stack1, stack2, stack3, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
 
     buffer += "<li>";
@@ -3051,10 +3105,15 @@ window.require.register("views/templates/step", function(exports, require, modul
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "unit", { hash: {} }); }
     buffer += escapeExpression(stack1) + " @ ";
-    foundHelper = helpers.temperature;
-    stack1 = foundHelper || depth0.temperature;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "temperature", { hash: {} }); }
+    foundHelper = helpers.end_temperature;
+    stack1 = foundHelper || depth0.end_temperature;
+    foundHelper = helpers.start_temperature;
+    stack2 = foundHelper || depth0.start_temperature;
+    foundHelper = helpers.stepTemperature;
+    stack3 = foundHelper || depth0.stepTemperature;
+    if(typeof stack3 === functionType) { stack1 = stack3.call(depth0, stack2, stack1, { hash: {} }); }
+    else if(stack3=== undef) { stack1 = helperMissing.call(depth0, "stepTemperature", stack2, stack1, { hash: {} }); }
+    else { stack1 = stack3; }
     buffer += escapeExpression(stack1) + " <a class=\"edit-step\" title=\"Edit\" href=\"#\"><i class=\"icon-edit\"></i></a> <a class=\"delete-step\" title=\"Delete\" href=\"#\"><i class=\"icon-trash\"></i></a></li>\n";
     return buffer;});
 });

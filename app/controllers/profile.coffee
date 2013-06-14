@@ -64,4 +64,6 @@ module.exports = class ProfileController extends Backbone.Marionette.Controller
 			@app.vent.trigger 'Heater:State', data
 		@socket_.on 'setgpio', (data) =>
 			@app.vent.trigger 'Heater:Changed', data
+		@socket_.on 'setpv', (data) =>
+			@app.vent.trigger 'Sensor:PV', data
 		@socket_.emit 'config'

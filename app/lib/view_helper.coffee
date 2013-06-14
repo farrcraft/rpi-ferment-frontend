@@ -37,6 +37,15 @@ Handlebars.registerHelper 'profileList', (value, options) ->
 		markup = markup + '<option value="' + id + '"' + selected + '>' + name + '</option>'
 	markup
 
+# render the temperature range of a step only if start and end represent a range and not a fixed temperature
+# usage: {{stepTemperature start_temperature end_temperature}}
+Handlebars.registerHelper 'stepTemperature', (start, end) ->
+	markup = ''
+	if start is end
+		markup = start
+	else
+		markup = start + '-' + end
+	markup
 
 # format an ISO date using Moment.js
 # http://momentjs.com/

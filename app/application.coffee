@@ -16,7 +16,7 @@ class Application extends Backbone.Marionette.Application
         @on("initialize:after", (options) =>
             options = 
                 application: @
-            @controller_ = new ProfileController(options)
+            @controller_ = new ProfileController options
             @controller_.setupSockets()
 
             Backbone.history.start();

@@ -25,10 +25,19 @@ module.exports = class GraphLayout extends Backbone.Marionette.Layout
 	initialize: (options) =>
 		updateProfileCallback = () =>
 			@updateProfileData true			
-		application.vent.on 'Profiles:Loaded', updateProfileCallback
-		application.vent.on 'Profile:Modified', updateProfileCallback
+		application.vent.on 'Profiles:Loaded', @updateProfileCallback
+		application.vent.on 'Profile:Modified', @updateProfileCallback
 		@updateProfileData false
+		application.vent.on 'Sensor:PV', @updateSensorDisplay
 		return
+
+	updateSensorDisplay: (data) =>
+		fermenterId = @model.get 'fermenterId'
+		if data.sensor is fermenterId
+			selector = '#' + fermenterId + '_sensorPV'
+			display = data.pv.toFixed 2
+			display = display + '&deg;'
+			$(selector).html display
 
 	updateProfileData: (rerender) =>
 		fermenterId = @model.get 'fermenterId'

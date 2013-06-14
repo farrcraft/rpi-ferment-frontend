@@ -6,7 +6,8 @@ module.exports = class StepModel extends Backbone.Model
 	defaults:
 		name: 'Fermentation Step'
 		duration: 7
-		temperature: 65
+		start_temperature: 65
+		end_temperature: 65
 		unit: 'days'
 		order: 1
 		profile: {}

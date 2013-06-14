@@ -13,3 +13,10 @@ module.exports = class AppLayout extends Backbone.Marionette.Layout
 		content: "#content"
 		modal: ModalRegion
 
+	initialize: (options) =>
+		@app = options.application
+		@app.vent.on 'Sensor:PV', (data) =>
+			if data.sensor is "ambient"
+				display = data.pv.toFixed 2
+				display = display + '&deg;'
+				$('#ambient-display').html display
