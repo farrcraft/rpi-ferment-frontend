@@ -2559,6 +2559,8 @@ window.require.register("views/ProfileView", function(exports, require, module) 
 
       ProfileView.prototype.template = template;
 
+      ProfileView.prototype.tagName = 'tr';
+
       ProfileView.prototype.events = {
         'click .edit': 'editProfile',
         'click .delete': 'deleteProfile',
@@ -2893,17 +2895,17 @@ window.require.register("views/templates/profile", function(exports, require, mo
     var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
 
-    buffer += "<tr>\n	<td>";
+    buffer += "<td>";
     foundHelper = helpers.name;
     stack1 = foundHelper || depth0.name;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "name", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</td>\n	<td><a class=\"edit\" title=\"Edit\" href=\"#\"><i class=\"icon-edit\"></i></a></td>\n	<td><a class=\"delete\" title=\"Delete\" href=\"#\"><i class=\"icon-trash\"></i></a></td>\n	<td><a class=\"activate\" href=\"#\">activate</a></td>\n	<td><a class=\"details\" title=\"Details\" href=\"#profile/";
+    buffer += escapeExpression(stack1) + "</td>\n<td><a class=\"edit\" title=\"Edit\" href=\"#\"><i class=\"icon-edit\"></i></a></td>\n<td><a class=\"delete\" title=\"Delete\" href=\"#\"><i class=\"icon-trash\"></i></a></td>\n<td><a class=\"activate\" href=\"#\">activate</a></td>\n<td><a class=\"details\" title=\"Details\" href=\"#profile/";
     foundHelper = helpers._id;
     stack1 = foundHelper || depth0._id;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "_id", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "\"><i class=\"icon-ellipsis-horizontal\"></i></a></td>\n</tr>\n";
+    buffer += escapeExpression(stack1) + "\"><i class=\"icon-ellipsis-horizontal\"></i></a></td>";
     return buffer;});
 });
 window.require.register("views/templates/profileDetail", function(exports, require, module) {

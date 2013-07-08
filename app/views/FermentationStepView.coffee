@@ -18,7 +18,7 @@ module.exports = class FermentationStepView extends Backbone.Marionette.ItemView
 			profile: @model.get 'profile'
 			model: @model
 			application: @app
-		modal = new FermentationStepModalView(options)
+		modal = new FermentationStepModalView options
 		@app.layout.modal.show modal
 		false
 

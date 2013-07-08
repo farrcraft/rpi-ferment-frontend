@@ -11,6 +11,7 @@ FermentationStepView 		= require 'views/FermentationStepView'
 
 module.exports = class ProfileView extends Backbone.Marionette.CompositeView
 		template: template
+		tagName: 'tr'
 		events:
 			'click .edit': 'editProfile'
 			'click .delete': 'deleteProfile'

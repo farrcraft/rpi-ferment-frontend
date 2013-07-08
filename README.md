@@ -55,7 +55,9 @@ The initial temperature that should be maintained during the duration of the ste
 
 #### end_temperature
 
-The final temperature that should be reached at the end of the step.  For most steps where you normally want to maintain a constant temperature over the duration of the step this would be the same temperature as the start_temperature value.  There maybe some instances where you would want to gradually increase or decrease the temperature over a period of time without having to create a large number of distinct steps.  For instance, if you're lagering you may want to define a "Drop to lagering temperature" step that slowly decreases the temperature over a period of time.  Another common scenario would be slowly raising the temperature to affect yeast ester production.  In either case, the current SV will be an interpolated value between the start and end temperatures based on the current time in the overall step duration.
+The final temperature that should be reached at the end of the step.  For most steps where you normally want to maintain a constant temperature over the duration of the step this would be the same temperature as the start_temperature value.  There maybe some instances where you would want to gradually increase or decrease the temperature over a period of time without having to create a large number of distinct steps.  
+
+For instance, if you're lagering you may want to define a "Drop to lagering temperature" step that slowly decreases the temperature over a period of time.  Another common scenario would be slowly raising the temperature to affect yeast ester production.  In either case, the current SV will be an interpolated value between the start and end temperatures based on the current time in the overall step duration.
 
 #### order
 
