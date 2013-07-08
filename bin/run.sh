@@ -36,6 +36,6 @@ fi
 
 echo "Starting in mode $start_mode..."
 
-NODE_ENV=$config_env node server.js $start_mode &
+NODE_ENV=$config_env node frontend.js $start_mode &
 
 exit 0
