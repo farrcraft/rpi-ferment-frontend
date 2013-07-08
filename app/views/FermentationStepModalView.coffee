@@ -44,7 +44,7 @@ module.exports = class FermentationStepModalView extends Backbone.Marionette.Ite
 		step.name = $('#step-input-name').val()
 		step.duration = $('#step-input-duration').val()
 		step.start_temperature = $('#step-input-start-temperature').val()
-		step.start_temperature = $('#step-input-end-temperature').val()
+		step.end_temperature = $('#step-input-end-temperature').val()
 		step.order = @ui.orderInput.val()
 
 		steps[step.order - 1] = step

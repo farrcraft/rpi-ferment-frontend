@@ -6,6 +6,7 @@ FermentationStepModalView 	= require 'views/FermentationStepModalView'
 
 module.exports = class FermentationStepView extends Backbone.Marionette.ItemView
 	template: template
+	tagName: 'tr'
 	events:
 		'click .edit-step': 'editStep'
 		'click .delete-step': 'deleteStep'

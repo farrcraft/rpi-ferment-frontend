@@ -1635,7 +1635,7 @@ window.require.register("views/FermentationStepModalView", function(exports, req
         step.name = $('#step-input-name').val();
         step.duration = $('#step-input-duration').val();
         step.start_temperature = $('#step-input-start-temperature').val();
-        step.start_temperature = $('#step-input-end-temperature').val();
+        step.end_temperature = $('#step-input-end-temperature').val();
         step.order = this.ui.orderInput.val();
         steps[step.order - 1] = step;
         if ($.isNumeric(oldOrder && step.order !== oldOrder)) {
@@ -1681,6 +1681,8 @@ window.require.register("views/FermentationStepView", function(exports, require,
       }
 
       FermentationStepView.prototype.template = template;
+
+      FermentationStepView.prototype.tagName = 'tr';
 
       FermentationStepView.prototype.events = {
         'click .edit-step': 'editStep',
@@ -2755,7 +2757,7 @@ window.require.register("views/templates/fermentationStepModal", function(export
     
     return "\n						<option value=\"days\">Days</option>\n						<option value=\"hours\">Hours</option>\n						";}
 
-    buffer += "<div id=\"step-modal\">\n	<div class=\"modal-header\">\n		<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">×</button>\n		<h3 id=\"stepModalLabel\">Fermentation Step</h3>\n	</div>\n	<div class=\"modal-body\">\n		<form class=\"form-horizontal\" id=\"step-form\">\n			<input type=\"hidden\" name=\"step-input-id\" value=\"\">\n			<iput type=\"hidden\" name=\"step-input-old-order\" value=\"";
+    buffer += "<div id=\"step-modal\">\n	<div class=\"modal-header\">\n		<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">×</button>\n		<h3 id=\"stepModalLabel\">Fermentation Step</h3>\n	</div>\n	<div class=\"modal-body\">\n		<form class=\"form-horizontal\" id=\"step-form\">\n			<input type=\"hidden\" id=\"step-input-id\" value=\"\">\n			<input type=\"hidden\" id=\"step-input-old-order\" value=\"";
     foundHelper = helpers.order;
     stack1 = foundHelper || depth0.order;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
@@ -2950,7 +2952,7 @@ window.require.register("views/templates/profileDetail", function(exports, requi
     stack1 = foundHelper || depth0.control_mode;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "control_mode", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "<br />\n	</div>\n</div>\n<br />\n<button class=\"edit\" title=\"Edit Profile\"><i class=\"icon-edit\"></i> Edit Profile</button>\n<hr />\n<h4>Steps</h4>\n<ol id=\"steps\">\n</ol>\n<br />\n<button class=\"add-step\" title=\"Add Step\" class=\"btn btn-mini\"><i class=\"icon-plus\"></i> Add Step</button>\n<hr />\n<h4>Override History</h4>\n<ul id=\"overrides\">\n	";
+    buffer += escapeExpression(stack1) + "<br />\n	</div>\n</div>\n<br />\n<button class=\"edit\" title=\"Edit Profile\"><i class=\"icon-edit\"></i> Edit Profile</button>\n<hr />\n<h4>Steps</h4>\n<table id=\"steps\">\n</table>\n<br />\n<button class=\"add-step\" title=\"Add Step\" class=\"btn btn-mini\"><i class=\"icon-plus\"></i> Add Step</button>\n<hr />\n<h4>Override History</h4>\n<ul id=\"overrides\">\n	";
     foundHelper = helpers.overrides;
     stack1 = foundHelper || depth0.overrides;
     stack2 = helpers.each;
@@ -3091,7 +3093,12 @@ window.require.register("views/templates/step", function(exports, require, modul
     var buffer = "", stack1, stack2, stack3, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
 
-    buffer += "<li>";
+    buffer += "<td>";
+    foundHelper = helpers.order;
+    stack1 = foundHelper || depth0.order;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "order", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "</td>\n<td>";
     foundHelper = helpers.name;
     stack1 = foundHelper || depth0.name;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
@@ -3116,6 +3123,6 @@ window.require.register("views/templates/step", function(exports, require, modul
     if(typeof stack3 === functionType) { stack1 = stack3.call(depth0, stack2, stack1, { hash: {} }); }
     else if(stack3=== undef) { stack1 = helperMissing.call(depth0, "stepTemperature", stack2, stack1, { hash: {} }); }
     else { stack1 = stack3; }
-    buffer += escapeExpression(stack1) + " <a class=\"edit-step\" title=\"Edit\" href=\"#\"><i class=\"icon-edit\"></i></a> <a class=\"delete-step\" title=\"Delete\" href=\"#\"><i class=\"icon-trash\"></i></a></li>\n";
+    buffer += escapeExpression(stack1) + "</td>\n<td>\n	<a class=\"edit-step\" title=\"Edit\" href=\"#\"><i class=\"icon-edit\"></i></a> <a class=\"delete-step\" title=\"Delete\" href=\"#\"><i class=\"icon-trash\"></i></a>\n</td>\n";
     return buffer;});
 });
