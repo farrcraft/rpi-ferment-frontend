@@ -4,7 +4,7 @@
 application 	 	= require 'application'
 HeaterView 		 	= require 'views/HeaterView'
 SampleView 		 	= require 'views/SampleView'
-ProfileModalView 	= require 'views/ProfileModalView'
+ProfileModalView 	= require 'views/modals/ProfileModalView'
 ProfileSelectorView = require 'views/ProfileSelectorView'
 
 module.exports = class GraphLayout extends Backbone.Marionette.Layout

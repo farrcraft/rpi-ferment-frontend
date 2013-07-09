@@ -81,7 +81,7 @@
 
 window.require.register("application", function(exports, require, module) {
   (function() {
-    var Application, Graph, ProfileController,
+    var AppLayout, Application, Graph, ProfileController,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
@@ -91,6 +91,8 @@ window.require.register("application", function(exports, require, module) {
     Graph = require('lib/graph');
 
     ProfileController = require('controllers/profile');
+
+    AppLayout = require('views/layouts/AppLayout');
 
     Application = (function(_super) {
 
@@ -121,8 +123,6 @@ window.require.register("application", function(exports, require, module) {
         });
         this.on('start', function() {});
         this.addInitializer(function(options) {
-          var AppLayout;
-          AppLayout = require('views/AppLayout');
           options = {
             application: _this
           };
@@ -153,11 +153,11 @@ window.require.register("controllers/profile", function(exports, require, module
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
-    ProfileModalView = require('views/ProfileModalView');
+    ProfileModalView = require('views/modals/ProfileModalView');
 
     ProfileModel = require('models/profileModel');
 
-    ProfileCollection = require('models/profileCollection');
+    ProfileCollection = require('models/collections/profileCollection');
 
     module.exports = ProfileController = (function(_super) {
 
@@ -1091,9 +1091,9 @@ window.require.register("lib/router", function(exports, require, module) {
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
-    HomeLayout = require('views/HomeLayout');
+    HomeLayout = require('views/layouts/HomeLayout');
 
-    ProfilesLayout = require('views/ProfilesLayout');
+    ProfilesLayout = require('views/layouts/ProfilesLayout');
 
     ProfileDetailView = require('views/ProfileDetailView');
 
@@ -1245,7 +1245,7 @@ window.require.register("lib/view_helper", function(exports, require, module) {
   }).call(this);
   
 });
-window.require.register("models/collection", function(exports, require, module) {
+window.require.register("models/collections/collection", function(exports, require, module) {
   (function() {
     var Collection,
       __hasProp = Object.prototype.hasOwnProperty,
@@ -1266,7 +1266,7 @@ window.require.register("models/collection", function(exports, require, module) 
   }).call(this);
   
 });
-window.require.register("models/graphCollection", function(exports, require, module) {
+window.require.register("models/collections/graphCollection", function(exports, require, module) {
   (function() {
     var GraphCollection, GraphModel,
       __hasProp = Object.prototype.hasOwnProperty,
@@ -1285,6 +1285,60 @@ window.require.register("models/graphCollection", function(exports, require, mod
       GraphCollection.prototype.model = GraphModel;
 
       return GraphCollection;
+
+    })(Backbone.Collection);
+
+  }).call(this);
+  
+});
+window.require.register("models/collections/profileCollection", function(exports, require, module) {
+  (function() {
+    var ProfileCollection, ProfileModel, config,
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    config = require('lib/config');
+
+    ProfileModel = require('models/profileModel');
+
+    module.exports = ProfileCollection = (function(_super) {
+
+      __extends(ProfileCollection, _super);
+
+      function ProfileCollection() {
+        ProfileCollection.__super__.constructor.apply(this, arguments);
+      }
+
+      ProfileCollection.prototype.url = config.modelRoot + '/profiles';
+
+      ProfileCollection.prototype.model = ProfileModel;
+
+      return ProfileCollection;
+
+    })(Backbone.Collection);
+
+  }).call(this);
+  
+});
+window.require.register("models/collections/stepCollection", function(exports, require, module) {
+  (function() {
+    var StepCollection, StepModel,
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    StepModel = require('models/stepModel');
+
+    module.exports = StepCollection = (function(_super) {
+
+      __extends(StepCollection, _super);
+
+      function StepCollection() {
+        StepCollection.__super__.constructor.apply(this, arguments);
+      }
+
+      StepCollection.prototype.model = StepModel;
+
+      return StepCollection;
 
     })(Backbone.Collection);
 
@@ -1355,35 +1409,6 @@ window.require.register("models/model", function(exports, require, module) {
       return Model;
 
     })(Backbone.Model);
-
-  }).call(this);
-  
-});
-window.require.register("models/profileCollection", function(exports, require, module) {
-  (function() {
-    var ProfileCollection, ProfileModel, config,
-      __hasProp = Object.prototype.hasOwnProperty,
-      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-    config = require('lib/config');
-
-    ProfileModel = require('models/profileModel');
-
-    module.exports = ProfileCollection = (function(_super) {
-
-      __extends(ProfileCollection, _super);
-
-      function ProfileCollection() {
-        ProfileCollection.__super__.constructor.apply(this, arguments);
-      }
-
-      ProfileCollection.prototype.url = config.modelRoot + '/profiles';
-
-      ProfileCollection.prototype.model = ProfileModel;
-
-      return ProfileCollection;
-
-    })(Backbone.Collection);
 
   }).call(this);
   
@@ -1461,27 +1486,10 @@ window.require.register("models/sampleModel", function(exports, require, module)
   }).call(this);
   
 });
-window.require.register("models/stepCollection", function(exports, require, module) {
+window.require.register("models/sessionModel", function(exports, require, module) {
   (function() {
-    var StepCollection, StepModel,
-      __hasProp = Object.prototype.hasOwnProperty,
-      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
-    StepModel = require('models/stepModel');
 
-    module.exports = StepCollection = (function(_super) {
-
-      __extends(StepCollection, _super);
-
-      function StepCollection() {
-        StepCollection.__super__.constructor.apply(this, arguments);
-      }
-
-      StepCollection.prototype.model = StepModel;
-
-      return StepCollection;
-
-    })(Backbone.Collection);
 
   }).call(this);
   
@@ -1519,145 +1527,6 @@ window.require.register("models/stepModel", function(exports, require, module) {
   }).call(this);
   
 });
-window.require.register("views/AppLayout", function(exports, require, module) {
-  (function() {
-    var AppLayout, ModalRegion, template,
-      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-      __hasProp = Object.prototype.hasOwnProperty,
-      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-    ModalRegion = require('views/ModalRegion');
-
-    template = require('views/templates/appLayout');
-
-    module.exports = AppLayout = (function(_super) {
-
-      __extends(AppLayout, _super);
-
-      function AppLayout() {
-        this.initialize = __bind(this.initialize, this);
-        AppLayout.__super__.constructor.apply(this, arguments);
-      }
-
-      AppLayout.prototype.template = template;
-
-      AppLayout.prototype.el = "body";
-
-      AppLayout.prototype.regions = {
-        nav: "#nav",
-        content: "#content",
-        modal: ModalRegion
-      };
-
-      AppLayout.prototype.initialize = function(options) {
-        var _this = this;
-        this.app = options.application;
-        return this.app.vent.on('Sensor:PV', function(data) {
-          var display;
-          if (data.sensor === "ambient") {
-            display = data.pv.toFixed(2);
-            display = display + '&deg;';
-            return $('#ambient-display').html(display);
-          }
-        });
-      };
-
-      return AppLayout;
-
-    })(Backbone.Marionette.Layout);
-
-  }).call(this);
-  
-});
-window.require.register("views/FermentationStepModalView", function(exports, require, module) {
-  (function() {
-    var FermentationStepModalView, StepModel, template,
-      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-      __hasProp = Object.prototype.hasOwnProperty,
-      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-    template = require('./templates/fermentationStepModal');
-
-    StepModel = require('models/stepModel');
-
-    module.exports = FermentationStepModalView = (function(_super) {
-
-      __extends(FermentationStepModalView, _super);
-
-      function FermentationStepModalView() {
-        this.saveStep = __bind(this.saveStep, this);
-        FermentationStepModalView.__super__.constructor.apply(this, arguments);
-      }
-
-      FermentationStepModalView.prototype.id = 'step-modal-view';
-
-      FermentationStepModalView.prototype.template = template;
-
-      FermentationStepModalView.prototype.profile_ = {};
-
-      FermentationStepModalView.prototype.events = {
-        'click #save-step': 'saveStep'
-      };
-
-      FermentationStepModalView.prototype.ui = {
-        orderInput: '#step-input-order',
-        oldOrderInput: '#step-input-old-order'
-      };
-
-      FermentationStepModalView.prototype.initialize = function(options) {
-        this.profile_ = options.profile;
-        return this.app = options.application;
-      };
-
-      FermentationStepModalView.prototype.onRender = function() {
-        var nextOrder, oldOrder, spinOptions, steps;
-        oldOrder = this.ui.oldOrderInput.val();
-        if ($.isNumeric(oldOrder)) {
-          nextOrder = oldOrder;
-        } else {
-          steps = this.profile_.get('steps');
-          nextOrder = steps.length + 1;
-        }
-        spinOptions = {
-          minimum: 1,
-          value: nextOrder
-        };
-        return this.ui.orderInput.spinedit(spinOptions);
-      };
-
-      FermentationStepModalView.prototype.saveStep = function(e) {
-        var oldOrder, step, steps,
-          _this = this;
-        oldOrder = this.ui.oldOrderInput.val();
-        steps = this.profile_.get('steps');
-        step = {};
-        if ($.isNumeric(oldOrder)) step = steps[oldOrder - 1];
-        step.name = $('#step-input-name').val();
-        step.duration = $('#step-input-duration').val();
-        step.start_temperature = $('#step-input-start-temperature').val();
-        step.end_temperature = $('#step-input-end-temperature').val();
-        step.order = this.ui.orderInput.val();
-        steps[step.order - 1] = step;
-        if ($.isNumeric(oldOrder && step.order !== oldOrder)) {
-          steps.splice(oldOrder - 1, 1);
-        }
-        this.profile_.set({
-          steps: steps
-        });
-        this.profile_.once('sync', function() {
-          return _this.app.vent.trigger('Profile:Modified');
-        });
-        this.profile_.save();
-        return this.app.layout.modal.close();
-      };
-
-      return FermentationStepModalView;
-
-    })(Backbone.Marionette.ItemView);
-
-  }).call(this);
-  
-});
 window.require.register("views/FermentationStepView", function(exports, require, module) {
   (function() {
     var FermentationStepModalView, FermentationStepView, template,
@@ -1667,7 +1536,7 @@ window.require.register("views/FermentationStepView", function(exports, require,
 
     template = require('./templates/step');
 
-    FermentationStepModalView = require('views/FermentationStepModalView');
+    FermentationStepModalView = require('views/modals/FermentationStepModalView');
 
     module.exports = FermentationStepView = (function(_super) {
 
@@ -1727,7 +1596,572 @@ window.require.register("views/FermentationStepView", function(exports, require,
   }).call(this);
   
 });
-window.require.register("views/GraphCollectionView", function(exports, require, module) {
+window.require.register("views/HeaterView", function(exports, require, module) {
+  (function() {
+    var HeaterModel, HeaterView, template,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    template = require('./templates/heater');
+
+    HeaterModel = require('models/heaterModel');
+
+    module.exports = HeaterView = (function(_super) {
+
+      __extends(HeaterView, _super);
+
+      function HeaterView() {
+        this.overrideResume = __bind(this.overrideResume, this);
+        this.heaterOverride = __bind(this.heaterOverride, this);
+        this.setHeaterState = __bind(this.setHeaterState, this);
+        this.initialize = __bind(this.initialize, this);
+        HeaterView.__super__.constructor.apply(this, arguments);
+      }
+
+      HeaterView.prototype.fermenterId = null;
+
+      HeaterView.prototype.app = null;
+
+      HeaterView.prototype.graphModel = null;
+
+      HeaterView.prototype.template = template;
+
+      HeaterView.prototype.events = {
+        'click .heaterOverride': 'heaterOverride',
+        'click .overrideResume': 'overrideResume'
+      };
+
+      HeaterView.prototype.ui = {
+        heaterLight: '.heaterLight',
+        heaterState: '.heaterState',
+        overrideResume: '.overrideResume'
+      };
+
+      HeaterView.prototype.initialize = function(options) {
+        var modelOptions,
+          _this = this;
+        this.fermenterId = options.fermenterId;
+        this.app = options.application;
+        this.graphModel = options.graphModel;
+        modelOptions = {
+          fermenterId: this.fermenterId,
+          gpio: options.gpio
+        };
+        this.model = new HeaterModel(modelOptions);
+        this.app.vent.on('Heater:State', function(data) {
+          if (data.sensor === _this.fermenterId) {
+            return _this.setHeaterState(data.state);
+          }
+        });
+        this.app.vent.on('Heater:Changed', function(data) {
+          if (data.sensor === _this.fermenterId) {
+            return _this.setHeaterState(data.state);
+          }
+        });
+        this.app.controller_.socket_.emit('getgpio', this.fermenterId);
+      };
+
+      HeaterView.prototype.onRender = function() {
+        var overrides, profile;
+        profile = this.graphModel.get('profile');
+        if (profile === void 0 || profile === null) {
+          this.ui.overrideResume.hide();
+          return;
+        }
+        overrides = profile.get('overrides');
+        if (overrides.length > 0 && overrides[overrides.length - 1].action === 'resume') {
+          return this.ui.overrideResume.hide();
+        } else {
+          return this.ui.overrideResume.show();
+        }
+      };
+
+      HeaterView.prototype.setHeaterState = function(state) {
+        var newClass, newState, oldClass;
+        newState = 'on';
+        newClass = 'green';
+        oldClass = 'red';
+        if (state !== true) {
+          newState = 'off';
+          newClass = 'red';
+          oldClass = 'green';
+        }
+        this.model.set('state', newState);
+        this.ui.heaterLight.removeClass(oldClass);
+        this.ui.heaterLight.addClass(newClass);
+        return this.ui.heaterState.text('Heater ' + newState);
+      };
+
+      HeaterView.prototype.heaterOverride = function(e) {
+        var newState, oldState, override, overrides, profile, value;
+        oldState = this.model.get('state');
+        newState = 'on';
+        value = true;
+        if (oldState === 'on') {
+          newState = 'off';
+          value = false;
+        }
+        profile = this.graphModel.get('profile');
+        if (profile !== void 0 && profile !== null) {
+          overrides = profile.get('overrides');
+          override = {
+            action: newState,
+            time: new Date()
+          };
+          overrides.push(override);
+          profile.set('overrides', overrides);
+          profile.save();
+        }
+        this.setHeaterState(value);
+        this.app.controller_.socket_.emit('setgpio', this.fermenterId, value);
+        return false;
+      };
+
+      HeaterView.prototype.overrideResume = function(e) {
+        var override, overrides, profile;
+        profile = this.graphModel.get('profile');
+        overrides = profile.get('overrides');
+        override = {
+          action: 'resume',
+          time: new Date()
+        };
+        overrides.push(override);
+        profile.set('overrides', overrides);
+        profile.save();
+        this.ui.overrideResume.hide();
+        return false;
+      };
+
+      return HeaterView;
+
+    })(Backbone.Marionette.ItemView);
+
+  }).call(this);
+  
+});
+window.require.register("views/HomeView", function(exports, require, module) {
+  (function() {
+    var HomeView, template,
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    template = require('./templates/home');
+
+    module.exports = HomeView = (function(_super) {
+
+      __extends(HomeView, _super);
+
+      function HomeView() {
+        HomeView.__super__.constructor.apply(this, arguments);
+      }
+
+      HomeView.prototype.id = 'home-view';
+
+      HomeView.prototype.template = template;
+
+      return HomeView;
+
+    })(Backbone.Marionette.ItemView);
+
+  }).call(this);
+  
+});
+window.require.register("views/LoginView", function(exports, require, module) {
+  (function() {
+
+
+
+  }).call(this);
+  
+});
+window.require.register("views/ModalRegion", function(exports, require, module) {
+  (function() {
+    var ModalRegion,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    module.exports = ModalRegion = (function(_super) {
+
+      __extends(ModalRegion, _super);
+
+      ModalRegion.prototype.el = '#modal';
+
+      function ModalRegion() {
+        this.hideModal = __bind(this.hideModal, this);
+        this.showModal = __bind(this.showModal, this);
+        this.getEl = __bind(this.getEl, this);      this.on('show', this.showModal, this);
+      }
+
+      ModalRegion.prototype.getEl = function(selector) {
+        var $el;
+        $el = $(selector);
+        $el.on('hidden', this.close);
+        return $el;
+      };
+
+      ModalRegion.prototype.showModal = function(view) {
+        view.on('close', this.hideModal, this);
+        this.$el.modal('show');
+        this.$el.css('margin-top', (this.$el.outerHeight() / 2) * -1);
+        this.$el.css('margin-left', (this.$el.outerWidth() / 2) * -1);
+        return this.$el.css('top', '50%');
+      };
+
+      ModalRegion.prototype.hideModal = function() {
+        return this.$el.modal('hide');
+      };
+
+      return ModalRegion;
+
+    })(Backbone.Marionette.Region);
+
+  }).call(this);
+  
+});
+window.require.register("views/ProfileDetailView", function(exports, require, module) {
+  (function() {
+    var FermentationStepModalView, FermentationStepView, ProfileDetailView, ProfileModalView, StepCollection, StepModel, template,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    template = require('./templates/profileDetail');
+
+    ProfileModalView = require('views/modals/ProfileModalView');
+
+    FermentationStepModalView = require('views/modals/FermentationStepModalView');
+
+    StepModel = require('models/stepModel');
+
+    StepCollection = require('models/collections/stepCollection');
+
+    FermentationStepView = require('views/FermentationStepView');
+
+    module.exports = ProfileDetailView = (function(_super) {
+
+      __extends(ProfileDetailView, _super);
+
+      function ProfileDetailView() {
+        this.editProfile = __bind(this.editProfile, this);
+        this.initialize = __bind(this.initialize, this);
+        ProfileDetailView.__super__.constructor.apply(this, arguments);
+      }
+
+      ProfileDetailView.prototype.template = template;
+
+      ProfileDetailView.prototype.events = {
+        'click .add-step': 'addStep',
+        'click .edit': 'editProfile'
+      };
+
+      ProfileDetailView.prototype.itemView = FermentationStepView;
+
+      ProfileDetailView.prototype.itemViewContainer = '#steps';
+
+      ProfileDetailView.prototype.itemViewOptions = function(model, index) {
+        var options;
+        options = {
+          application: this.app
+        };
+        return options;
+      };
+
+      ProfileDetailView.prototype.initialize = function(options) {
+        var _this = this;
+        this.app = options.application;
+        this.loadSteps();
+        return this.app.vent.on('Profile:Modified', function() {
+          return _this.model.fetch({
+            success: function() {
+              _this.app.controller_.profiles_.fetch();
+              _this.loadSteps();
+              return _this.render();
+            }
+          });
+        });
+      };
+
+      ProfileDetailView.prototype.loadSteps = function() {
+        var model, step, steps;
+        this.collection = new StepCollection();
+        steps = this.model.get('steps');
+        if (steps !== void 0) {
+          return step = (function() {
+            var _i, _len, _results;
+            _results = [];
+            for (_i = 0, _len = steps.length; _i < _len; _i++) {
+              step = steps[_i];
+              model = new StepModel(step);
+              model.set('profile', this.model);
+              _results.push(this.collection.add(model));
+            }
+            return _results;
+          }).call(this);
+        }
+      };
+
+      ProfileDetailView.prototype.addStep = function(e) {
+        var modal, options;
+        options = {
+          profile: this.model,
+          application: this.app
+        };
+        modal = new FermentationStepModalView(options);
+        return this.app.layout.modal.show(modal);
+      };
+
+      ProfileDetailView.prototype.editProfile = function(e) {
+        var modal, options;
+        options = {
+          model: this.model,
+          application: this.app
+        };
+        modal = new ProfileModalView(options);
+        this.app.layout.modal.show(modal);
+        return false;
+      };
+
+      return ProfileDetailView;
+
+    })(Backbone.Marionette.CompositeView);
+
+  }).call(this);
+  
+});
+window.require.register("views/ProfileSelectorView", function(exports, require, module) {
+  (function() {
+    var ProfileSelectorView, template,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    template = require('./templates/profileSelector');
+
+    module.exports = ProfileSelectorView = (function(_super) {
+
+      __extends(ProfileSelectorView, _super);
+
+      function ProfileSelectorView() {
+        this.saveActiveProfile = __bind(this.saveActiveProfile, this);
+        this.initialize = __bind(this.initialize, this);
+        ProfileSelectorView.__super__.constructor.apply(this, arguments);
+      }
+
+      ProfileSelectorView.prototype.id = 'profile-modal-view';
+
+      ProfileSelectorView.prototype.fermenterId = null;
+
+      ProfileSelectorView.prototype.template = template;
+
+      ProfileSelectorView.prototype.events = {
+        'click #save-active-profile': 'saveActiveProfile'
+      };
+
+      ProfileSelectorView.prototype.initialize = function(options) {
+        this.app = options.application;
+        return this.fermenterId = options.fermenterId;
+      };
+
+      ProfileSelectorView.prototype.saveActiveProfile = function(e) {
+        var activeId,
+          _this = this;
+        activeId = $('#profile-input-id').val();
+        this.app.controller_.profiles_.each(function(profile) {
+          var id, modified, oldState, sensor;
+          id = profile.get('_id');
+          modified = false;
+          oldState = profile.get('active');
+          sensor = profile.get('sensor');
+          if (id === activeId) {
+            if (oldState !== true || sensor !== _this.fermenterId) {
+              profile.set('active', true);
+              profile.set('sensor', _this.fermenterId);
+              modified = true;
+            }
+          } else {
+            if (oldState === true && sensor === _this.fermenterId) {
+              profile.set('active', false);
+              modified = true;
+            }
+          }
+          if (modified === true) {
+            profile.once('sync', function() {
+              return _this.app.vent.trigger('Profile:Modified');
+            });
+            return profile.save();
+          }
+        });
+        this.app.layout.modal.close();
+        return false;
+      };
+
+      return ProfileSelectorView;
+
+    })(Backbone.Marionette.ItemView);
+
+  }).call(this);
+  
+});
+window.require.register("views/ProfileView", function(exports, require, module) {
+  (function() {
+    var FermentationStepModalView, FermentationStepView, ProfileModalView, ProfileView, StepCollection, StepModel, application, template,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    application = require('application');
+
+    template = require('./templates/profile');
+
+    ProfileModalView = require('views/modals/ProfileModalView');
+
+    FermentationStepModalView = require('views/modals/FermentationStepModalView');
+
+    StepModel = require('models/stepModel');
+
+    StepCollection = require('models/collections/stepCollection');
+
+    FermentationStepView = require('views/FermentationStepView');
+
+    module.exports = ProfileView = (function(_super) {
+
+      __extends(ProfileView, _super);
+
+      function ProfileView() {
+        this.deleteProfile = __bind(this.deleteProfile, this);
+        this.editProfile = __bind(this.editProfile, this);
+        this.initialize = __bind(this.initialize, this);
+        ProfileView.__super__.constructor.apply(this, arguments);
+      }
+
+      ProfileView.prototype.template = template;
+
+      ProfileView.prototype.tagName = 'tr';
+
+      ProfileView.prototype.events = {
+        'click .edit': 'editProfile',
+        'click .delete': 'deleteProfile',
+        'click .activate': 'activateProfile'
+      };
+
+      ProfileView.prototype.ui = {
+        activateButton: '.activate'
+      };
+
+      ProfileView.prototype.initialize = function(options) {};
+
+      ProfileView.prototype.onRender = function() {
+        var state;
+        state = this.model.get('active');
+        if (state) return this.ui.activateButton.text('deactivate');
+      };
+
+      ProfileView.prototype.activateProfile = function(e) {
+        var id, newState, state;
+        state = this.model.get('active');
+        newState = false;
+        if (state === true) {
+          this.model.set('active', false);
+          this.ui.activateButton.text('activate');
+        } else {
+          newState = true;
+          this.model.set('active', true);
+          this.ui.activateButton.text('deactivate');
+        }
+        id = this.model.get('_id');
+        application.controller_.activateProfile(id, newState);
+        return false;
+      };
+
+      ProfileView.prototype.editProfile = function(e) {
+        var modal, options;
+        options = {
+          model: this.model,
+          application: application
+        };
+        modal = new ProfileModalView(options);
+        application.layout.modal.show(modal);
+        return false;
+      };
+
+      ProfileView.prototype.deleteProfile = function(e) {
+        this.model.once('sync', function() {
+          return application.vent.trigger('Profile:Modified');
+        });
+        this.model.destroy();
+        return false;
+      };
+
+      return ProfileView;
+
+    })(Backbone.Marionette.CompositeView);
+
+  }).call(this);
+  
+});
+window.require.register("views/SampleView", function(exports, require, module) {
+  (function() {
+    var SampleModel, SampleView, template,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    template = require('./templates/sample');
+
+    SampleModel = require('models/sampleModel');
+
+    module.exports = SampleView = (function(_super) {
+
+      __extends(SampleView, _super);
+
+      function SampleView() {
+        this.changeSampleRate = __bind(this.changeSampleRate, this);
+        SampleView.__super__.constructor.apply(this, arguments);
+      }
+
+      SampleView.prototype.template = template;
+
+      SampleView.prototype.ui = {
+        currentSample: '.currentSample'
+      };
+
+      SampleView.prototype.events = {
+        'click .sampleRate': 'changeSampleRate'
+      };
+
+      SampleView.prototype.initialize = function(options) {
+        var modelOptions;
+        this.fermenterId = options.fermenterId;
+        this.layout = options.layout;
+        modelOptions = {
+          fermenterId: this.fermenterId
+        };
+        this.model = new SampleModel(modelOptions);
+      };
+
+      SampleView.prototype.changeSampleRate = function(e) {
+        var newRate, unit, value;
+        newRate = $(e.target).text();
+        unit = newRate.substr(newRate.length - 1, 1);
+        value = newRate.substring(0, newRate.indexOf(unit));
+        this.model.set('current', value);
+        this.model.set('unit', unit);
+        this.ui.currentSample.text(newRate);
+        this.layout.model.set('sample', value);
+        this.layout.renderGraph();
+        return false;
+      };
+
+      return SampleView;
+
+    })(Backbone.Marionette.ItemView);
+
+  }).call(this);
+  
+});
+window.require.register("views/collections/GraphCollectionView", function(exports, require, module) {
   (function() {
     var GraphCollectionView, GraphLayout, application,
       __hasProp = Object.prototype.hasOwnProperty,
@@ -1735,7 +2169,7 @@ window.require.register("views/GraphCollectionView", function(exports, require, 
 
     application = require('application');
 
-    GraphLayout = require('views/GraphLayout');
+    GraphLayout = require('views/layouts/GraphLayout');
 
     module.exports = GraphCollectionView = (function(_super) {
 
@@ -1756,7 +2190,99 @@ window.require.register("views/GraphCollectionView", function(exports, require, 
   }).call(this);
   
 });
-window.require.register("views/GraphLayout", function(exports, require, module) {
+window.require.register("views/collections/ProfileCollectionView", function(exports, require, module) {
+  (function() {
+    var ProfileCollectionView, ProfileView,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    ProfileView = require('views/ProfileView');
+
+    module.exports = ProfileCollectionView = (function(_super) {
+
+      __extends(ProfileCollectionView, _super);
+
+      function ProfileCollectionView() {
+        this.initialize = __bind(this.initialize, this);
+        ProfileCollectionView.__super__.constructor.apply(this, arguments);
+      }
+
+      ProfileCollectionView.prototype.tagName = 'div';
+
+      ProfileCollectionView.prototype.itemView = ProfileView;
+
+      ProfileCollectionView.prototype.initialize = function(options) {
+        var _this = this;
+        this.app = options.application;
+        return this.app.vent.on('Profile:Modified', function() {
+          return _this.collection.fetch({
+            add: true,
+            success: function() {
+              return _this.render();
+            }
+          });
+        });
+      };
+
+      return ProfileCollectionView;
+
+    })(Backbone.Marionette.CollectionView);
+
+  }).call(this);
+  
+});
+window.require.register("views/layouts/AppLayout", function(exports, require, module) {
+  (function() {
+    var AppLayout, ModalRegion, template,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    ModalRegion = require('views/ModalRegion');
+
+    template = require('views/templates/layouts/appLayout');
+
+    module.exports = AppLayout = (function(_super) {
+
+      __extends(AppLayout, _super);
+
+      function AppLayout() {
+        this.initialize = __bind(this.initialize, this);
+        AppLayout.__super__.constructor.apply(this, arguments);
+      }
+
+      AppLayout.prototype.template = template;
+
+      AppLayout.prototype.el = "body";
+
+      AppLayout.prototype.regions = {
+        nav: "#nav",
+        content: "#content",
+        modal: ModalRegion
+      };
+
+      AppLayout.prototype.initialize = function(options) {
+        var _this = this;
+        this.app = options.application;
+        return this.app.vent.on('Sensor:PV', function(data) {
+          var display;
+          if (data.sensor === "ambient") {
+            display = data.pv.toFixed(2);
+            display = display + '&deg;';
+            return $('#ambient-display').html(display);
+          }
+        });
+      };
+
+      return AppLayout;
+
+    })(Backbone.Marionette.Layout);
+
+  }).call(this);
+  
+});
+window.require.register("views/layouts/GraphLayout", function(exports, require, module) {
   (function() {
     var GraphLayout, HeaterView, ProfileModalView, ProfileSelectorView, SampleView, application,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -1769,7 +2295,7 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
 
     SampleView = require('views/SampleView');
 
-    ProfileModalView = require('views/ProfileModalView');
+    ProfileModalView = require('views/modals/ProfileModalView');
 
     ProfileSelectorView = require('views/ProfileSelectorView');
 
@@ -1950,162 +2476,20 @@ window.require.register("views/GraphLayout", function(exports, require, module) 
   }).call(this);
   
 });
-window.require.register("views/HeaterView", function(exports, require, module) {
+window.require.register("views/layouts/HomeLayout", function(exports, require, module) {
   (function() {
-    var HeaterModel, HeaterView, template,
+    var GraphCollection, GraphCollectionView, GraphModel, HomeLayout, template,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
-    template = require('./templates/heater');
+    GraphCollectionView = require('views/collections/GraphCollectionView');
 
-    HeaterModel = require('models/heaterModel');
-
-    module.exports = HeaterView = (function(_super) {
-
-      __extends(HeaterView, _super);
-
-      function HeaterView() {
-        this.overrideResume = __bind(this.overrideResume, this);
-        this.heaterOverride = __bind(this.heaterOverride, this);
-        this.setHeaterState = __bind(this.setHeaterState, this);
-        this.initialize = __bind(this.initialize, this);
-        HeaterView.__super__.constructor.apply(this, arguments);
-      }
-
-      HeaterView.prototype.fermenterId = null;
-
-      HeaterView.prototype.app = null;
-
-      HeaterView.prototype.graphModel = null;
-
-      HeaterView.prototype.template = template;
-
-      HeaterView.prototype.events = {
-        'click .heaterOverride': 'heaterOverride',
-        'click .overrideResume': 'overrideResume'
-      };
-
-      HeaterView.prototype.ui = {
-        heaterLight: '.heaterLight',
-        heaterState: '.heaterState',
-        overrideResume: '.overrideResume'
-      };
-
-      HeaterView.prototype.initialize = function(options) {
-        var modelOptions,
-          _this = this;
-        this.fermenterId = options.fermenterId;
-        this.app = options.application;
-        this.graphModel = options.graphModel;
-        modelOptions = {
-          fermenterId: this.fermenterId,
-          gpio: options.gpio
-        };
-        this.model = new HeaterModel(modelOptions);
-        this.app.vent.on('Heater:State', function(data) {
-          if (data.sensor === _this.fermenterId) {
-            return _this.setHeaterState(data.state);
-          }
-        });
-        this.app.vent.on('Heater:Changed', function(data) {
-          if (data.sensor === _this.fermenterId) {
-            return _this.setHeaterState(data.state);
-          }
-        });
-        this.app.controller_.socket_.emit('getgpio', this.fermenterId);
-      };
-
-      HeaterView.prototype.onRender = function() {
-        var overrides, profile;
-        profile = this.graphModel.get('profile');
-        if (profile === void 0 || profile === null) {
-          this.ui.overrideResume.hide();
-          return;
-        }
-        overrides = profile.get('overrides');
-        if (overrides.length > 0 && overrides[overrides.length - 1].action === 'resume') {
-          return this.ui.overrideResume.hide();
-        } else {
-          return this.ui.overrideResume.show();
-        }
-      };
-
-      HeaterView.prototype.setHeaterState = function(state) {
-        var newClass, newState, oldClass;
-        newState = 'on';
-        newClass = 'green';
-        oldClass = 'red';
-        if (state !== true) {
-          newState = 'off';
-          newClass = 'red';
-          oldClass = 'green';
-        }
-        this.model.set('state', newState);
-        this.ui.heaterLight.removeClass(oldClass);
-        this.ui.heaterLight.addClass(newClass);
-        return this.ui.heaterState.text('Heater ' + newState);
-      };
-
-      HeaterView.prototype.heaterOverride = function(e) {
-        var newState, oldState, override, overrides, profile, value;
-        oldState = this.model.get('state');
-        newState = 'on';
-        value = true;
-        if (oldState === 'on') {
-          newState = 'off';
-          value = false;
-        }
-        profile = this.graphModel.get('profile');
-        if (profile !== void 0 && profile !== null) {
-          overrides = profile.get('overrides');
-          override = {
-            action: newState,
-            time: new Date()
-          };
-          overrides.push(override);
-          profile.set('overrides', overrides);
-          profile.save();
-        }
-        this.setHeaterState(value);
-        this.app.controller_.socket_.emit('setgpio', this.fermenterId, value);
-        return false;
-      };
-
-      HeaterView.prototype.overrideResume = function(e) {
-        var override, overrides, profile;
-        profile = this.graphModel.get('profile');
-        overrides = profile.get('overrides');
-        override = {
-          action: 'resume',
-          time: new Date()
-        };
-        overrides.push(override);
-        profile.set('overrides', overrides);
-        profile.save();
-        this.ui.overrideResume.hide();
-        return false;
-      };
-
-      return HeaterView;
-
-    })(Backbone.Marionette.ItemView);
-
-  }).call(this);
-  
-});
-window.require.register("views/HomeLayout", function(exports, require, module) {
-  (function() {
-    var GraphCollection, GraphCollectionView, GraphModel, HomeLayout,
-      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-      __hasProp = Object.prototype.hasOwnProperty,
-      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-    GraphCollectionView = require('views/GraphCollectionView');
-
-    GraphCollection = require('models/graphCollection');
+    GraphCollection = require('models/collections/graphCollection');
 
     GraphModel = require('models/graphModel');
+
+    template = require('views/templates/layouts/homeLayout');
 
     module.exports = HomeLayout = (function(_super) {
 
@@ -2117,7 +2501,7 @@ window.require.register("views/HomeLayout", function(exports, require, module) {
         HomeLayout.__super__.constructor.apply(this, arguments);
       }
 
-      HomeLayout.prototype.template = require('views/templates/homeLayout');
+      HomeLayout.prototype.template = template;
 
       HomeLayout.prototype.initialize = function(options) {
         var _this = this;
@@ -2172,238 +2556,158 @@ window.require.register("views/HomeLayout", function(exports, require, module) {
   }).call(this);
   
 });
-window.require.register("views/HomeView", function(exports, require, module) {
+window.require.register("views/layouts/ProfilesLayout", function(exports, require, module) {
   (function() {
-    var HomeView, template,
+    var ProfileCollectionView, ProfileModel, ProfilesLayout, template,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
-    template = require('./templates/home');
+    ProfileCollectionView = require('views/collections/ProfileCollectionView');
 
-    module.exports = HomeView = (function(_super) {
+    ProfileModel = require('models/profileModel');
 
-      __extends(HomeView, _super);
+    template = require('views/templates/layouts/profilesLayout');
 
-      function HomeView() {
-        HomeView.__super__.constructor.apply(this, arguments);
+    module.exports = ProfilesLayout = (function(_super) {
+
+      __extends(ProfilesLayout, _super);
+
+      function ProfilesLayout() {
+        this.showProfiles = __bind(this.showProfiles, this);
+        this.initialize = __bind(this.initialize, this);
+        ProfilesLayout.__super__.constructor.apply(this, arguments);
       }
 
-      HomeView.prototype.id = 'home-view';
+      ProfilesLayout.prototype.template = template;
 
-      HomeView.prototype.template = template;
+      ProfilesLayout.prototype.regions = {
+        profiles: "#profiles-table"
+      };
 
-      return HomeView;
+      ProfilesLayout.prototype.initialize = function(options) {
+        var _this = this;
+        this.app = options.application;
+        return this.app.vent.on('Profiles:Loaded', function() {
+          return _this.showProfiles();
+        });
+      };
+
+      ProfilesLayout.prototype.showProfiles = function() {
+        var options, view;
+        options = {
+          application: this.app,
+          collection: this.app.controller_.profiles_
+        };
+        view = new ProfileCollectionView(options);
+        this.profiles.close();
+        return this.profiles.show(view);
+      };
+
+      return ProfilesLayout;
+
+    })(Backbone.Marionette.Layout);
+
+  }).call(this);
+  
+});
+window.require.register("views/modals/FermentationStepModalView", function(exports, require, module) {
+  (function() {
+    var FermentationStepModalView, StepModel, template,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    template = require('./templates/modals/fermentationStepModal');
+
+    StepModel = require('models/stepModel');
+
+    module.exports = FermentationStepModalView = (function(_super) {
+
+      __extends(FermentationStepModalView, _super);
+
+      function FermentationStepModalView() {
+        this.saveStep = __bind(this.saveStep, this);
+        FermentationStepModalView.__super__.constructor.apply(this, arguments);
+      }
+
+      FermentationStepModalView.prototype.id = 'step-modal-view';
+
+      FermentationStepModalView.prototype.template = template;
+
+      FermentationStepModalView.prototype.profile_ = {};
+
+      FermentationStepModalView.prototype.events = {
+        'click #save-step': 'saveStep'
+      };
+
+      FermentationStepModalView.prototype.ui = {
+        orderInput: '#step-input-order',
+        oldOrderInput: '#step-input-old-order'
+      };
+
+      FermentationStepModalView.prototype.initialize = function(options) {
+        this.profile_ = options.profile;
+        return this.app = options.application;
+      };
+
+      FermentationStepModalView.prototype.onRender = function() {
+        var nextOrder, oldOrder, spinOptions, steps;
+        oldOrder = this.ui.oldOrderInput.val();
+        if ($.isNumeric(oldOrder)) {
+          nextOrder = oldOrder;
+        } else {
+          steps = this.profile_.get('steps');
+          nextOrder = steps.length + 1;
+        }
+        spinOptions = {
+          minimum: 1,
+          value: nextOrder
+        };
+        return this.ui.orderInput.spinedit(spinOptions);
+      };
+
+      FermentationStepModalView.prototype.saveStep = function(e) {
+        var oldOrder, step, steps,
+          _this = this;
+        oldOrder = this.ui.oldOrderInput.val();
+        steps = this.profile_.get('steps');
+        step = {};
+        if ($.isNumeric(oldOrder)) step = steps[oldOrder - 1];
+        step.name = $('#step-input-name').val();
+        step.duration = $('#step-input-duration').val();
+        step.start_temperature = $('#step-input-start-temperature').val();
+        step.end_temperature = $('#step-input-end-temperature').val();
+        step.order = this.ui.orderInput.val();
+        steps[step.order - 1] = step;
+        if ($.isNumeric(oldOrder && step.order !== oldOrder)) {
+          steps.splice(oldOrder - 1, 1);
+        }
+        this.profile_.set({
+          steps: steps
+        });
+        this.profile_.once('sync', function() {
+          return _this.app.vent.trigger('Profile:Modified');
+        });
+        this.profile_.save();
+        return this.app.layout.modal.close();
+      };
+
+      return FermentationStepModalView;
 
     })(Backbone.Marionette.ItemView);
 
   }).call(this);
   
 });
-window.require.register("views/ModalRegion", function(exports, require, module) {
-  (function() {
-    var ModalRegion,
-      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-      __hasProp = Object.prototype.hasOwnProperty,
-      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-    module.exports = ModalRegion = (function(_super) {
-
-      __extends(ModalRegion, _super);
-
-      ModalRegion.prototype.el = '#modal';
-
-      function ModalRegion() {
-        this.hideModal = __bind(this.hideModal, this);
-        this.showModal = __bind(this.showModal, this);
-        this.getEl = __bind(this.getEl, this);      this.on('show', this.showModal, this);
-      }
-
-      ModalRegion.prototype.getEl = function(selector) {
-        var $el;
-        $el = $(selector);
-        $el.on('hidden', this.close);
-        return $el;
-      };
-
-      ModalRegion.prototype.showModal = function(view) {
-        view.on('close', this.hideModal, this);
-        this.$el.modal('show');
-        this.$el.css('margin-top', (this.$el.outerHeight() / 2) * -1);
-        this.$el.css('margin-left', (this.$el.outerWidth() / 2) * -1);
-        return this.$el.css('top', '50%');
-      };
-
-      ModalRegion.prototype.hideModal = function() {
-        return this.$el.modal('hide');
-      };
-
-      return ModalRegion;
-
-    })(Backbone.Marionette.Region);
-
-  }).call(this);
-  
-});
-window.require.register("views/ProfileCollectionView", function(exports, require, module) {
-  (function() {
-    var ProfileCollectionView, ProfileView,
-      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-      __hasProp = Object.prototype.hasOwnProperty,
-      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-    ProfileView = require('views/ProfileView');
-
-    module.exports = ProfileCollectionView = (function(_super) {
-
-      __extends(ProfileCollectionView, _super);
-
-      function ProfileCollectionView() {
-        this.initialize = __bind(this.initialize, this);
-        ProfileCollectionView.__super__.constructor.apply(this, arguments);
-      }
-
-      ProfileCollectionView.prototype.tagName = 'div';
-
-      ProfileCollectionView.prototype.itemView = ProfileView;
-
-      ProfileCollectionView.prototype.initialize = function(options) {
-        var _this = this;
-        this.app = options.application;
-        return this.app.vent.on('Profile:Modified', function() {
-          return _this.collection.fetch({
-            add: true,
-            success: function() {
-              return _this.render();
-            }
-          });
-        });
-      };
-
-      return ProfileCollectionView;
-
-    })(Backbone.Marionette.CollectionView);
-
-  }).call(this);
-  
-});
-window.require.register("views/ProfileDetailView", function(exports, require, module) {
-  (function() {
-    var FermentationStepModalView, FermentationStepView, ProfileDetailView, ProfileModalView, StepCollection, StepModel, template,
-      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-      __hasProp = Object.prototype.hasOwnProperty,
-      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-    template = require('./templates/profileDetail');
-
-    ProfileModalView = require('views/ProfileModalView');
-
-    FermentationStepModalView = require('views/FermentationStepModalView');
-
-    StepModel = require('models/stepModel');
-
-    StepCollection = require('models/stepCollection');
-
-    FermentationStepView = require('views/FermentationStepView');
-
-    module.exports = ProfileDetailView = (function(_super) {
-
-      __extends(ProfileDetailView, _super);
-
-      function ProfileDetailView() {
-        this.editProfile = __bind(this.editProfile, this);
-        this.initialize = __bind(this.initialize, this);
-        ProfileDetailView.__super__.constructor.apply(this, arguments);
-      }
-
-      ProfileDetailView.prototype.template = template;
-
-      ProfileDetailView.prototype.events = {
-        'click .add-step': 'addStep',
-        'click .edit': 'editProfile'
-      };
-
-      ProfileDetailView.prototype.itemView = FermentationStepView;
-
-      ProfileDetailView.prototype.itemViewContainer = '#steps';
-
-      ProfileDetailView.prototype.itemViewOptions = function(model, index) {
-        var options;
-        options = {
-          application: this.app
-        };
-        return options;
-      };
-
-      ProfileDetailView.prototype.initialize = function(options) {
-        var _this = this;
-        this.app = options.application;
-        this.loadSteps();
-        return this.app.vent.on('Profile:Modified', function() {
-          return _this.model.fetch({
-            success: function() {
-              _this.app.controller_.profiles_.fetch();
-              _this.loadSteps();
-              return _this.render();
-            }
-          });
-        });
-      };
-
-      ProfileDetailView.prototype.loadSteps = function() {
-        var model, step, steps;
-        this.collection = new StepCollection();
-        steps = this.model.get('steps');
-        if (steps !== void 0) {
-          return step = (function() {
-            var _i, _len, _results;
-            _results = [];
-            for (_i = 0, _len = steps.length; _i < _len; _i++) {
-              step = steps[_i];
-              model = new StepModel(step);
-              model.set('profile', this.model);
-              _results.push(this.collection.add(model));
-            }
-            return _results;
-          }).call(this);
-        }
-      };
-
-      ProfileDetailView.prototype.addStep = function(e) {
-        var modal, options;
-        options = {
-          profile: this.model,
-          application: this.app
-        };
-        modal = new FermentationStepModalView(options);
-        return this.app.layout.modal.show(modal);
-      };
-
-      ProfileDetailView.prototype.editProfile = function(e) {
-        var modal, options;
-        options = {
-          model: this.model,
-          application: this.app
-        };
-        modal = new ProfileModalView(options);
-        this.app.layout.modal.show(modal);
-        return false;
-      };
-
-      return ProfileDetailView;
-
-    })(Backbone.Marionette.CompositeView);
-
-  }).call(this);
-  
-});
-window.require.register("views/ProfileModalView", function(exports, require, module) {
+window.require.register("views/modals/ProfileModalView", function(exports, require, module) {
   (function() {
     var ProfileModalView, ProfileModel, template,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
-    template = require('./templates/profileModal');
+    template = require('./templates/modals/profileModal');
 
     ProfileModel = require('models/profileModel');
 
@@ -2453,293 +2757,39 @@ window.require.register("views/ProfileModalView", function(exports, require, mod
   }).call(this);
   
 });
-window.require.register("views/ProfileSelectorView", function(exports, require, module) {
-  (function() {
-    var ProfileSelectorView, template,
-      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-      __hasProp = Object.prototype.hasOwnProperty,
-      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+window.require.register("views/templates/heater", function(exports, require, module) {
+  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+    helpers = helpers || Handlebars.helpers;
+    var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
-    template = require('./templates/profileSelector');
 
-    module.exports = ProfileSelectorView = (function(_super) {
-
-      __extends(ProfileSelectorView, _super);
-
-      function ProfileSelectorView() {
-        this.saveActiveProfile = __bind(this.saveActiveProfile, this);
-        this.initialize = __bind(this.initialize, this);
-        ProfileSelectorView.__super__.constructor.apply(this, arguments);
-      }
-
-      ProfileSelectorView.prototype.id = 'profile-modal-view';
-
-      ProfileSelectorView.prototype.fermenterId = null;
-
-      ProfileSelectorView.prototype.template = template;
-
-      ProfileSelectorView.prototype.events = {
-        'click #save-active-profile': 'saveActiveProfile'
-      };
-
-      ProfileSelectorView.prototype.initialize = function(options) {
-        this.app = options.application;
-        return this.fermenterId = options.fermenterId;
-      };
-
-      ProfileSelectorView.prototype.saveActiveProfile = function(e) {
-        var activeId,
-          _this = this;
-        activeId = $('#profile-input-id').val();
-        this.app.controller_.profiles_.each(function(profile) {
-          var id, modified, oldState, sensor;
-          id = profile.get('_id');
-          modified = false;
-          oldState = profile.get('active');
-          sensor = profile.get('sensor');
-          if (id === activeId) {
-            if (oldState !== true || sensor !== _this.fermenterId) {
-              profile.set('active', true);
-              profile.set('sensor', _this.fermenterId);
-              modified = true;
-            }
-          } else {
-            if (oldState === true && sensor === _this.fermenterId) {
-              profile.set('active', false);
-              modified = true;
-            }
-          }
-          if (modified === true) {
-            profile.once('sync', function() {
-              return _this.app.vent.trigger('Profile:Modified');
-            });
-            return profile.save();
-          }
-        });
-        this.app.layout.modal.close();
-        return false;
-      };
-
-      return ProfileSelectorView;
-
-    })(Backbone.Marionette.ItemView);
-
-  }).call(this);
-  
+    buffer += "<div id=\"";
+    foundHelper = helpers.fermenterId;
+    stack1 = foundHelper || depth0.fermenterId;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "_heaterLight\" class=\"heaterLight red\"></div> <strong class=\"heaterState\">Heater ";
+    foundHelper = helpers.state;
+    stack1 = foundHelper || depth0.state;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "state", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "</strong> <a id=\"";
+    foundHelper = helpers.fermenterId;
+    stack1 = foundHelper || depth0.fermenterId;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "_heaterOverride\" class=\"heaterOverride\" href=\"#\">[override]</a> <a class=\"overrideResume\" href=\"#\">[resume]</a>\n";
+    return buffer;});
 });
-window.require.register("views/ProfileView", function(exports, require, module) {
-  (function() {
-    var FermentationStepModalView, FermentationStepView, ProfileModalView, ProfileView, StepCollection, StepModel, application, template,
-      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-      __hasProp = Object.prototype.hasOwnProperty,
-      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+window.require.register("views/templates/home", function(exports, require, module) {
+  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+    helpers = helpers || Handlebars.helpers;
+    var foundHelper, self=this;
 
-    application = require('application');
 
-    template = require('./templates/profile');
-
-    ProfileModalView = require('views/ProfileModalView');
-
-    FermentationStepModalView = require('views/FermentationStepModalView');
-
-    StepModel = require('models/stepModel');
-
-    StepCollection = require('models/stepCollection');
-
-    FermentationStepView = require('views/FermentationStepView');
-
-    module.exports = ProfileView = (function(_super) {
-
-      __extends(ProfileView, _super);
-
-      function ProfileView() {
-        this.deleteProfile = __bind(this.deleteProfile, this);
-        this.editProfile = __bind(this.editProfile, this);
-        this.initialize = __bind(this.initialize, this);
-        ProfileView.__super__.constructor.apply(this, arguments);
-      }
-
-      ProfileView.prototype.template = template;
-
-      ProfileView.prototype.tagName = 'tr';
-
-      ProfileView.prototype.events = {
-        'click .edit': 'editProfile',
-        'click .delete': 'deleteProfile',
-        'click .activate': 'activateProfile'
-      };
-
-      ProfileView.prototype.ui = {
-        activateButton: '.activate'
-      };
-
-      ProfileView.prototype.initialize = function(options) {};
-
-      ProfileView.prototype.onRender = function() {
-        var state;
-        state = this.model.get('active');
-        if (state) return this.ui.activateButton.text('deactivate');
-      };
-
-      ProfileView.prototype.activateProfile = function(e) {
-        var id, newState, state;
-        state = this.model.get('active');
-        newState = false;
-        if (state === true) {
-          this.model.set('active', false);
-          this.ui.activateButton.text('activate');
-        } else {
-          newState = true;
-          this.model.set('active', true);
-          this.ui.activateButton.text('deactivate');
-        }
-        id = this.model.get('_id');
-        application.controller_.activateProfile(id, newState);
-        return false;
-      };
-
-      ProfileView.prototype.editProfile = function(e) {
-        var modal, options;
-        options = {
-          model: this.model,
-          application: application
-        };
-        modal = new ProfileModalView(options);
-        application.layout.modal.show(modal);
-        return false;
-      };
-
-      ProfileView.prototype.deleteProfile = function(e) {
-        this.model.once('sync', function() {
-          return application.vent.trigger('Profile:Modified');
-        });
-        this.model.destroy();
-        return false;
-      };
-
-      return ProfileView;
-
-    })(Backbone.Marionette.CompositeView);
-
-  }).call(this);
-  
+    return "<div class=\"row\">\n	<div class=\"span12\">\n		<h2>Active Fermentations</h2>\n		<hr />\n	</div>\n</div>\n";});
 });
-window.require.register("views/ProfilesLayout", function(exports, require, module) {
-  (function() {
-    var ProfileCollectionView, ProfileModel, ProfilesLayout, template,
-      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-      __hasProp = Object.prototype.hasOwnProperty,
-      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-    ProfileCollectionView = require('views/ProfileCollectionView');
-
-    ProfileModel = require('models/profileModel');
-
-    template = require('views/templates/profilesLayout');
-
-    module.exports = ProfilesLayout = (function(_super) {
-
-      __extends(ProfilesLayout, _super);
-
-      function ProfilesLayout() {
-        this.showProfiles = __bind(this.showProfiles, this);
-        this.initialize = __bind(this.initialize, this);
-        ProfilesLayout.__super__.constructor.apply(this, arguments);
-      }
-
-      ProfilesLayout.prototype.template = template;
-
-      ProfilesLayout.prototype.regions = {
-        profiles: "#profiles-table"
-      };
-
-      ProfilesLayout.prototype.initialize = function(options) {
-        var _this = this;
-        this.app = options.application;
-        return this.app.vent.on('Profiles:Loaded', function() {
-          return _this.showProfiles();
-        });
-      };
-
-      ProfilesLayout.prototype.showProfiles = function() {
-        var options, view;
-        options = {
-          application: this.app,
-          collection: this.app.controller_.profiles_
-        };
-        view = new ProfileCollectionView(options);
-        this.profiles.close();
-        return this.profiles.show(view);
-      };
-
-      return ProfilesLayout;
-
-    })(Backbone.Marionette.Layout);
-
-  }).call(this);
-  
-});
-window.require.register("views/SampleView", function(exports, require, module) {
-  (function() {
-    var SampleModel, SampleView, template,
-      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-      __hasProp = Object.prototype.hasOwnProperty,
-      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-    template = require('./templates/sample');
-
-    SampleModel = require('models/sampleModel');
-
-    module.exports = SampleView = (function(_super) {
-
-      __extends(SampleView, _super);
-
-      function SampleView() {
-        this.changeSampleRate = __bind(this.changeSampleRate, this);
-        SampleView.__super__.constructor.apply(this, arguments);
-      }
-
-      SampleView.prototype.template = template;
-
-      SampleView.prototype.ui = {
-        currentSample: '.currentSample'
-      };
-
-      SampleView.prototype.events = {
-        'click .sampleRate': 'changeSampleRate'
-      };
-
-      SampleView.prototype.initialize = function(options) {
-        var modelOptions;
-        this.fermenterId = options.fermenterId;
-        this.layout = options.layout;
-        modelOptions = {
-          fermenterId: this.fermenterId
-        };
-        this.model = new SampleModel(modelOptions);
-      };
-
-      SampleView.prototype.changeSampleRate = function(e) {
-        var newRate, unit, value;
-        newRate = $(e.target).text();
-        unit = newRate.substr(newRate.length - 1, 1);
-        value = newRate.substring(0, newRate.indexOf(unit));
-        this.model.set('current', value);
-        this.model.set('unit', unit);
-        this.ui.currentSample.text(newRate);
-        this.layout.model.set('sample', value);
-        this.layout.renderGraph();
-        return false;
-      };
-
-      return SampleView;
-
-    })(Backbone.Marionette.ItemView);
-
-  }).call(this);
-  
-});
-window.require.register("views/templates/appLayout", function(exports, require, module) {
+window.require.register("views/templates/layouts/appLayout", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
     var foundHelper, self=this;
@@ -2747,7 +2797,86 @@ window.require.register("views/templates/appLayout", function(exports, require, 
 
     return "<div id=\"nav\" class=\"navbar navbar-fixed-top\">\n	<div class=\"navbar-inner\">\n		<div class=\"container\">\n			<a class=\"brand\" href=\"#\">RPi Ferment</a>\n			<ul class=\"nav\">\n				<li><a id=\"profiles-nav\" href=\"#profiles\">Profiles</a></li>\n				<li><a id=\"new-profile-nav\" href=\"#\">New Profile</a></li>\n			</ul>\n			<p class=\"navbar-text pull-right\" title=\"Ambient Temperature\" id=\"ambient-display\"></p>\n		</div>\n	</div>\n</div>\n\n<div id=\"content\" class=\"container\"></div>\n<div id=\"modal\" class=\"modal hide fade\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"profileModalLabel\" aria-hidden=\"true\">\n</div>";});
 });
-window.require.register("views/templates/fermentationStepModal", function(exports, require, module) {
+window.require.register("views/templates/layouts/graphLayout", function(exports, require, module) {
+  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+    helpers = helpers || Handlebars.helpers;
+    var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
+
+
+    buffer += "<div class=\"row\">\n	<div class=\"span9\">\n		<h3>";
+    foundHelper = helpers.fermenterName;
+    stack1 = foundHelper || depth0.fermenterName;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterName", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "</h3>\n		<div id=\"";
+    foundHelper = helpers.fermenterId;
+    stack1 = foundHelper || depth0.fermenterId;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "_graphRegion\"></div>\n		<div class=\"graph-profile-heading\">Fermenting: <span class=\"activeProfile\">";
+    foundHelper = helpers.profileName;
+    stack1 = foundHelper || depth0.profileName;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "profileName", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "</span> <a class=\"editProfile\" title=\"Edit\" href=\"#\"><i class=\"icon-pencil\"></i></a></div>\n		<h6 class=\"activeStep\">";
+    foundHelper = helpers.activeStep;
+    stack1 = foundHelper || depth0.activeStep;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "activeStep", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "</h6>\n		<div>\n			<a class=\"changeProfile\" href=\"#\">[change profile]</a>\n		</div>\n		<br />\n		<strong>PV:</strong> <span id=\"";
+    foundHelper = helpers.fermenterId;
+    stack1 = foundHelper || depth0.fermenterId;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "_sensorPV\" title=\"Current PV\"></span>\n		<div id=\"";
+    foundHelper = helpers.fermenterId;
+    stack1 = foundHelper || depth0.fermenterId;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "_heaterRegion\"></div>\n		<br />\n		<!--<a id=\"";
+    foundHelper = helpers.fermenterId;
+    stack1 = foundHelper || depth0.fermenterId;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "_history\" class=\"history\" href=\"#\">History...</a>-->\n	</div>\n</div>\n\n<div id=\"";
+    foundHelper = helpers.fermenterId;
+    stack1 = foundHelper || depth0.fermenterId;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "_sampleRegion\"></div>\n<hr />";
+    return buffer;});
+});
+window.require.register("views/templates/layouts/homeLayout", function(exports, require, module) {
+  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+    helpers = helpers || Handlebars.helpers;
+    var foundHelper, self=this;
+
+
+    return "<div class=\"row\">\n	<div class=\"span12\">\n		<h2>Active Fermentations</h2>\n		<hr />\n	</div>\n</div>\n<div id=\"graphs\">\n</div>\n";});
+});
+window.require.register("views/templates/layouts/profilesLayout", function(exports, require, module) {
+  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+    helpers = helpers || Handlebars.helpers;
+    var foundHelper, self=this;
+
+
+    return "<h2>Fermentation Profiles</h2>\n<hr />\n<table id=\"profiles-table\" class=\"table\">\n</table>\n";});
+});
+window.require.register("views/templates/login", function(exports, require, module) {
+  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+    helpers = helpers || Handlebars.helpers;
+    var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
+
+
+    buffer += "<form id=\"login-form\" class=\"form-horizontal\">\n	<fieldset>\n		<div class=\"control-group\">\n			<label class=\"control-label\" for=\"email\">Email</label>\n			<div class=\"controls\">\n				<input type=\"text\" id=\"login-input-email\" value=\"";
+    foundHelper = helpers.email;
+    stack1 = foundHelper || depth0.email;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "email", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\" class=\"input-xlarge\" />\n			</div>\n		</div>\n		<div class=\"control-group\">\n			<label class=\"control-label\" for=\"password\">Password</label>\n			<div class=\"controls\">\n				<input type=\"password\" id=\"login-input-password\" class=\"input-xlarge\" />\n			</div>\n		</div>\n		<div class=\"form-actions\">\n			<button id=\"login-button\" class=\"btn btn-primary\">Login</button>\n		</div>\n	</fieldset>\n</form>";
+    return buffer;});
+});
+window.require.register("views/templates/modals/fermentationStepModal", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
     var buffer = "", stack1, stack2, foundHelper, tmp1, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression, blockHelperMissing=helpers.blockHelperMissing;
@@ -2802,94 +2931,52 @@ window.require.register("views/templates/fermentationStepModal", function(export
     buffer += escapeExpression(stack1) + "\">\n				</div>\n			</div>\n		</form>\n	</div>\n	<div class=\"modal-footer\">\n		<button class=\"btn\" data-dismiss=\"modal\" aria-hidden=\"true\">Close</button>\n		<button id=\"save-step\" class=\"btn btn-primary\">Save changes</button>\n	</div>\n</div>";
     return buffer;});
 });
-window.require.register("views/templates/graphLayout", function(exports, require, module) {
+window.require.register("views/templates/modals/profileModal", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
-    var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
+    var buffer = "", stack1, stack2, foundHelper, tmp1, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression, blockHelperMissing=helpers.blockHelperMissing;
 
+  function program1(depth0,data) {
+    
+    
+    return "\n						";}
 
-    buffer += "<div class=\"row\">\n	<div class=\"span9\">\n		<h3>";
-    foundHelper = helpers.fermenterName;
-    stack1 = foundHelper || depth0.fermenterName;
+  function program3(depth0,data) {
+    
+    
+    return "\n						<option value=\"none\">None</option>\n						<option value=\"pid\">PID</option>\n						<option value=\"auto\">Auto</option>\n						<option value=\"manual\">Manual</option>\n					";}
+
+    buffer += "<div id=\"profile-modal\">\n	<div class=\"modal-header\">\n		<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">×</button>\n		<h3 id=\"profileModalLabel\">Fermentation Profile</h3>\n	</div>\n	<div class=\"modal-body\">\n		<form class=\"form-horizontal\" id=\"profile-form\">\n			<input type=\"hidden\" id=\"profile-input-id\" value=\"\">\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"profile-input-name\">Name</label>\n				<div class=\"controls\">\n					<input type=\"text\" id=\"profile-input-name\" placeholder=\"Name\" value=\"";
+    foundHelper = helpers.name;
+    stack1 = foundHelper || depth0.name;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterName", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</h3>\n		<div id=\"";
-    foundHelper = helpers.fermenterId;
-    stack1 = foundHelper || depth0.fermenterId;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "_graphRegion\"></div>\n		<div class=\"graph-profile-heading\">Fermenting: <span class=\"activeProfile\">";
-    foundHelper = helpers.profileName;
-    stack1 = foundHelper || depth0.profileName;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "profileName", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</span> <a class=\"editProfile\" title=\"Edit\" href=\"#\"><i class=\"icon-pencil\"></i></a></div>\n		<h6 class=\"activeStep\">";
-    foundHelper = helpers.activeStep;
-    stack1 = foundHelper || depth0.activeStep;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "activeStep", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</h6>\n		<div>\n			<a class=\"changeProfile\" href=\"#\">[change profile]</a>\n		</div>\n		<br />\n		<strong>PV:</strong> <span id=\"";
-    foundHelper = helpers.fermenterId;
-    stack1 = foundHelper || depth0.fermenterId;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "_sensorPV\" title=\"Current PV\"></span>\n		<div id=\"";
-    foundHelper = helpers.fermenterId;
-    stack1 = foundHelper || depth0.fermenterId;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "_heaterRegion\"></div>\n		<br />\n		<!--<a id=\"";
-    foundHelper = helpers.fermenterId;
-    stack1 = foundHelper || depth0.fermenterId;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "_history\" class=\"history\" href=\"#\">History...</a>-->\n	</div>\n</div>\n\n<div id=\"";
-    foundHelper = helpers.fermenterId;
-    stack1 = foundHelper || depth0.fermenterId;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "_sampleRegion\"></div>\n<hr />";
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "name", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\">\n				</div>\n			</div>\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"profile-input-sensor\">Sensor</label>\n				<div class=\"controls\">\n					<select id=\"profile-input-sensor\">\n						";
+    foundHelper = helpers.sensor;
+    stack1 = foundHelper || depth0.sensor;
+    foundHelper = helpers.sensorList;
+    stack2 = foundHelper || depth0.sensorList;
+    tmp1 = self.program(1, program1, data);
+    tmp1.hash = {};
+    tmp1.fn = tmp1;
+    tmp1.inverse = self.noop;
+    if(foundHelper && typeof stack2 === functionType) { stack1 = stack2.call(depth0, stack1, tmp1); }
+    else { stack1 = blockHelperMissing.call(depth0, stack2, stack1, tmp1); }
+    if(stack1 || stack1 === 0) { buffer += stack1; }
+    buffer += "\n					</select>\n				</div>\n			</div>\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"profile-input-mode\">Control Mode</label>\n				<div class=\"controls\">\n					<select id=\"profile-input-mode\">\n					";
+    foundHelper = helpers.control_mode;
+    stack1 = foundHelper || depth0.control_mode;
+    foundHelper = helpers.select;
+    stack2 = foundHelper || depth0.select;
+    tmp1 = self.program(3, program3, data);
+    tmp1.hash = {};
+    tmp1.fn = tmp1;
+    tmp1.inverse = self.noop;
+    if(foundHelper && typeof stack2 === functionType) { stack1 = stack2.call(depth0, stack1, tmp1); }
+    else { stack1 = blockHelperMissing.call(depth0, stack2, stack1, tmp1); }
+    if(stack1 || stack1 === 0) { buffer += stack1; }
+    buffer += "\n					</select>\n				</div>\n			</div>\n		</form>\n	</div>\n	<div class=\"modal-footer\">\n		<button class=\"btn\" data-dismiss=\"modal\" aria-hidden=\"true\">Close</button>\n		<button id=\"save-profile\" class=\"btn btn-primary\">Save changes</button>\n	</div>\n</div>";
     return buffer;});
-});
-window.require.register("views/templates/heater", function(exports, require, module) {
-  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
-    helpers = helpers || Handlebars.helpers;
-    var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
-
-
-    buffer += "<div id=\"";
-    foundHelper = helpers.fermenterId;
-    stack1 = foundHelper || depth0.fermenterId;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "_heaterLight\" class=\"heaterLight red\"></div> <strong class=\"heaterState\">Heater ";
-    foundHelper = helpers.state;
-    stack1 = foundHelper || depth0.state;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "state", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</strong> <a id=\"";
-    foundHelper = helpers.fermenterId;
-    stack1 = foundHelper || depth0.fermenterId;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "_heaterOverride\" class=\"heaterOverride\" href=\"#\">[override]</a> <a class=\"overrideResume\" href=\"#\">[resume]</a>\n";
-    return buffer;});
-});
-window.require.register("views/templates/home", function(exports, require, module) {
-  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
-    helpers = helpers || Handlebars.helpers;
-    var foundHelper, self=this;
-
-
-    return "<div class=\"row\">\n	<div class=\"span12\">\n		<h2>Active Fermentations</h2>\n		<hr />\n	</div>\n</div>\n";});
-});
-window.require.register("views/templates/homeLayout", function(exports, require, module) {
-  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
-    helpers = helpers || Handlebars.helpers;
-    var foundHelper, self=this;
-
-
-    return "<div class=\"row\">\n	<div class=\"span12\">\n		<h2>Active Fermentations</h2>\n		<hr />\n	</div>\n</div>\n<div id=\"graphs\">\n</div>\n";});
 });
 window.require.register("views/templates/profile", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -2965,53 +3052,6 @@ window.require.register("views/templates/profileDetail", function(exports, requi
     buffer += "\n</ul>\n\n";
     return buffer;});
 });
-window.require.register("views/templates/profileModal", function(exports, require, module) {
-  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
-    helpers = helpers || Handlebars.helpers;
-    var buffer = "", stack1, stack2, foundHelper, tmp1, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression, blockHelperMissing=helpers.blockHelperMissing;
-
-  function program1(depth0,data) {
-    
-    
-    return "\n						";}
-
-  function program3(depth0,data) {
-    
-    
-    return "\n						<option value=\"none\">None</option>\n						<option value=\"pid\">PID</option>\n						<option value=\"auto\">Auto</option>\n						<option value=\"manual\">Manual</option>\n					";}
-
-    buffer += "<div id=\"profile-modal\">\n	<div class=\"modal-header\">\n		<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">×</button>\n		<h3 id=\"profileModalLabel\">Fermentation Profile</h3>\n	</div>\n	<div class=\"modal-body\">\n		<form class=\"form-horizontal\" id=\"profile-form\">\n			<input type=\"hidden\" id=\"profile-input-id\" value=\"\">\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"profile-input-name\">Name</label>\n				<div class=\"controls\">\n					<input type=\"text\" id=\"profile-input-name\" placeholder=\"Name\" value=\"";
-    foundHelper = helpers.name;
-    stack1 = foundHelper || depth0.name;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "name", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "\">\n				</div>\n			</div>\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"profile-input-sensor\">Sensor</label>\n				<div class=\"controls\">\n					<select id=\"profile-input-sensor\">\n						";
-    foundHelper = helpers.sensor;
-    stack1 = foundHelper || depth0.sensor;
-    foundHelper = helpers.sensorList;
-    stack2 = foundHelper || depth0.sensorList;
-    tmp1 = self.program(1, program1, data);
-    tmp1.hash = {};
-    tmp1.fn = tmp1;
-    tmp1.inverse = self.noop;
-    if(foundHelper && typeof stack2 === functionType) { stack1 = stack2.call(depth0, stack1, tmp1); }
-    else { stack1 = blockHelperMissing.call(depth0, stack2, stack1, tmp1); }
-    if(stack1 || stack1 === 0) { buffer += stack1; }
-    buffer += "\n					</select>\n				</div>\n			</div>\n			<div class=\"control-group\">\n				<label class=\"control-label\" for=\"profile-input-mode\">Control Mode</label>\n				<div class=\"controls\">\n					<select id=\"profile-input-mode\">\n					";
-    foundHelper = helpers.control_mode;
-    stack1 = foundHelper || depth0.control_mode;
-    foundHelper = helpers.select;
-    stack2 = foundHelper || depth0.select;
-    tmp1 = self.program(3, program3, data);
-    tmp1.hash = {};
-    tmp1.fn = tmp1;
-    tmp1.inverse = self.noop;
-    if(foundHelper && typeof stack2 === functionType) { stack1 = stack2.call(depth0, stack1, tmp1); }
-    else { stack1 = blockHelperMissing.call(depth0, stack2, stack1, tmp1); }
-    if(stack1 || stack1 === 0) { buffer += stack1; }
-    buffer += "\n					</select>\n				</div>\n			</div>\n		</form>\n	</div>\n	<div class=\"modal-footer\">\n		<button class=\"btn\" data-dismiss=\"modal\" aria-hidden=\"true\">Close</button>\n		<button id=\"save-profile\" class=\"btn btn-primary\">Save changes</button>\n	</div>\n</div>";
-    return buffer;});
-});
 window.require.register("views/templates/profileSelector", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
@@ -3036,14 +3076,6 @@ window.require.register("views/templates/profileSelector", function(exports, req
     if(stack1 || stack1 === 0) { buffer += stack1; }
     buffer += "\n					</select>\n				</div>\n			</div>\n	</div>\n	<div class=\"modal-footer\">\n		<button class=\"btn\" data-dismiss=\"modal\" aria-hidden=\"true\">Close</button>\n		<button id=\"save-active-profile\" class=\"btn\">Save changes</button>\n	</div>\n</div>";
     return buffer;});
-});
-window.require.register("views/templates/profilesLayout", function(exports, require, module) {
-  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
-    helpers = helpers || Handlebars.helpers;
-    var foundHelper, self=this;
-
-
-    return "<h2>Fermentation Profiles</h2>\n<hr />\n<table id=\"profiles-table\" class=\"table\">\n</table>\n";});
 });
 window.require.register("views/templates/sample", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {

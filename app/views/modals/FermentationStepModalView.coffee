@@ -1,7 +1,7 @@
 # rpi-ferment-frontend
 # Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
 
-template 	= require './templates/fermentationStepModal'
+template 	= require './templates/modals/fermentationStepModal'
 StepModel 	= require 'models/stepModel'
 
 module.exports = class FermentationStepModalView extends Backbone.Marionette.ItemView

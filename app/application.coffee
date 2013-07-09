@@ -2,8 +2,9 @@
 # Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
 
 require 'lib/view_helper'
-Graph = require 'lib/graph'
-ProfileController = require 'controllers/profile'
+Graph               = require 'lib/graph'
+ProfileController   = require 'controllers/profile'
+AppLayout           = require 'views/layouts/AppLayout'
 
 class Application extends Backbone.Marionette.Application
     graph_: null
@@ -29,7 +30,6 @@ class Application extends Backbone.Marionette.Application
 
         @addInitializer( (options) =>
 
-            AppLayout = require 'views/AppLayout'
             options =
                 application: @
             @layout = new AppLayout options

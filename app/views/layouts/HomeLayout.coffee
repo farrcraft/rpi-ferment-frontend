@@ -1,12 +1,13 @@
 # rpi-ferment-frontend
 # Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
 
-GraphCollectionView = require 'views/GraphCollectionView'
-GraphCollection 	= require 'models/graphCollection'
+GraphCollectionView = require 'views/collections/GraphCollectionView'
+GraphCollection 	= require 'models/collections/graphCollection'
 GraphModel 			= require 'models/graphModel'
+template 			= require 'views/templates/layouts/homeLayout'
 
 module.exports = class HomeLayout extends Backbone.Marionette.Layout
-	template: require('views/templates/homeLayout')
+	template: template
 
 	initialize: (options) =>
 		@graphRegion = @addRegion 'graphs', '#graphs'

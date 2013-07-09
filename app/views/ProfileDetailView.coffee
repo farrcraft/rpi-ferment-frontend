@@ -2,10 +2,10 @@
 # Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
 
 template 					= require './templates/profileDetail'
-ProfileModalView 			= require 'views/ProfileModalView'
-FermentationStepModalView 	= require 'views/FermentationStepModalView'
+ProfileModalView 			= require 'views/modals/ProfileModalView'
+FermentationStepModalView 	= require 'views/modals/FermentationStepModalView'
 StepModel					= require 'models/stepModel'
-StepCollection				= require 'models/stepCollection'
+StepCollection				= require 'models/collections/stepCollection'
 FermentationStepView 		= require 'views/FermentationStepView'
 
 module.exports = class ProfileDetailView extends Backbone.Marionette.CompositeView

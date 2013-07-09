@@ -2,7 +2,7 @@
 # Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
 
 template 					= require './templates/step'
-FermentationStepModalView 	= require 'views/FermentationStepModalView'
+FermentationStepModalView 	= require 'views/modals/FermentationStepModalView'
 
 module.exports = class FermentationStepView extends Backbone.Marionette.ItemView
 	template: template

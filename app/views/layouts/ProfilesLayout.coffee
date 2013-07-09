@@ -1,9 +1,9 @@
 # rpi-ferment-frontend
 # Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
 
-ProfileCollectionView 	= require 'views/ProfileCollectionView'
+ProfileCollectionView 	= require 'views/collections/ProfileCollectionView'
 ProfileModel 			= require 'models/profileModel'
-template 				= require 'views/templates/profilesLayout'
+template 				= require 'views/templates/layouts/profilesLayout'
 
 module.exports = class ProfilesLayout extends Backbone.Marionette.Layout
 	template: template

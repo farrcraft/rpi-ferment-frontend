@@ -1,8 +1,8 @@
 # rpi-ferment-frontend
 # Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
 
-HomeLayout 			= require 'views/HomeLayout'
-ProfilesLayout 		= require 'views/ProfilesLayout'
+HomeLayout 			= require 'views/layouts/HomeLayout'
+ProfilesLayout 		= require 'views/layouts/ProfilesLayout'
 ProfileDetailView 	= require 'views/ProfileDetailView'
 ProfileModel		= require 'models/profileModel'
 

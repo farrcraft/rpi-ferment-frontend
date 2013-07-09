@@ -1,6 +1,6 @@
-ProfileModalView 	= require 'views/ProfileModalView'
+ProfileModalView 	= require 'views/modals/ProfileModalView'
 ProfileModel 		= require 'models/profileModel'
-ProfileCollection 	= require 'models/profileCollection'
+ProfileCollection 	= require 'models/collections/profileCollection'
 
 module.exports = class ProfileController extends Backbone.Marionette.Controller
 	socket_: null
