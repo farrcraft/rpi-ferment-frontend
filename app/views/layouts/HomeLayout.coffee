@@ -1,5 +1,5 @@
 # rpi-ferment-frontend
-# Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
+# Copyright(c) Joshua Farr <j.wgasa@gmail.com>
 
 GraphCollectionView = require 'views/collections/GraphCollectionView'
 GraphCollection 	= require 'models/collections/graphCollection'
@@ -36,5 +36,8 @@ module.exports = class HomeLayout extends Backbone.Marionette.Layout
 				model = new GraphModel options
 				models.push model
 		collection = new GraphCollection models
-		view = new GraphCollectionView { collection: collection }
+		options =
+			collection: collection
+			application: @app
+		view = new GraphCollectionView options
 		@graphRegion.show view

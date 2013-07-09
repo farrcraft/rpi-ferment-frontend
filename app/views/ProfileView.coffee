@@ -1,7 +1,6 @@
 # rpi-ferment-frontend
-# Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
+# Copyright(c) Joshua Farr <j.wgasa@gmail.com>
 
-application 				= require 'application'
 template 					= require './templates/profile'
 ProfileModalView 			= require 'views/modals/ProfileModalView'
 FermentationStepModalView 	= require 'views/modals/FermentationStepModalView'
@@ -21,6 +20,7 @@ module.exports = class ProfileView extends Backbone.Marionette.CompositeView
 			activateButton: '.activate'
 
 		initialize: (options) =>
+			@app = options.application
 			return
 
 		onRender: () ->

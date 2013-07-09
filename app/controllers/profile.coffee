@@ -1,3 +1,6 @@
+# rpi-ferment-frontend
+# Copyright(c) Joshua Farr <j.wgasa@gmail.com>
+
 ProfileModalView 	= require 'views/modals/ProfileModalView'
 ProfileModel 		= require 'models/profileModel'
 ProfileCollection 	= require 'models/collections/profileCollection'

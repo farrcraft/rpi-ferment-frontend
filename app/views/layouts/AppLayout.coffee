@@ -1,5 +1,5 @@
 # rpi-ferment-frontend
-# Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
+# Copyright(c) Joshua Farr <j.wgasa@gmail.com>
 
 ModalRegion = require 'views/ModalRegion'
 template 	= require 'views/templates/layouts/appLayout'

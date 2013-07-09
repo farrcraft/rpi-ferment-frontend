@@ -1,14 +1,14 @@
 # rpi-ferment-frontend
-# Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
+# Copyright(c) Joshua Farr <j.wgasa@gmail.com>
 
-application 	 	= require 'application'
 HeaterView 		 	= require 'views/HeaterView'
 SampleView 		 	= require 'views/SampleView'
 ProfileModalView 	= require 'views/modals/ProfileModalView'
 ProfileSelectorView = require 'views/ProfileSelectorView'
+template 			= require 'views/templates/layouts/graphLayout'
 
 module.exports = class GraphLayout extends Backbone.Marionette.Layout
-	template: require('views/templates/graphLayout')
+	template: template
 
 	events:
 		'click .changeProfile': 'changeProfile'
@@ -23,12 +23,13 @@ module.exports = class GraphLayout extends Backbone.Marionette.Layout
 
 
 	initialize: (options) =>
+		@app = options.application
 		updateProfileCallback = () =>
 			@updateProfileData true			
-		application.vent.on 'Profiles:Loaded', @updateProfileCallback
-		application.vent.on 'Profile:Modified', @updateProfileCallback
+		@app.vent.on 'Profiles:Loaded', @updateProfileCallback
+		@app.vent.on 'Profile:Modified', @updateProfileCallback
 		@updateProfileData false
-		application.vent.on 'Sensor:PV', @updateSensorDisplay
+		@app.vent.on 'Sensor:PV', @updateSensorDisplay
 		return
 
 	updateSensorDisplay: (data) =>
@@ -42,7 +43,7 @@ module.exports = class GraphLayout extends Backbone.Marionette.Layout
 	updateProfileData: (rerender) =>
 		fermenterId = @model.get 'fermenterId'
 		activeProfile = null
-		application.controller_.profiles_.each (profile) =>
+		@app.controller_.profiles_.each (profile) =>
 			sensor = profile.get 'sensor'
 			active = profile.get 'active'
 			if sensor is fermenterId and active is true
@@ -84,7 +85,7 @@ module.exports = class GraphLayout extends Backbone.Marionette.Layout
 		options =
 			fermenterId: fermenterId
 			layout: @
-			application: application
+			application: @app
 			graphModel: @model
 			gpio: gpio
 
@@ -104,7 +105,7 @@ module.exports = class GraphLayout extends Backbone.Marionette.Layout
 		fermenterId = @model.get 'fermenterId'
 		sample = @model.get 'sample'
 		el = fermenterId
-		@graphView = application.graph_.createView fermenterId, el, sample
+		@graphView = @app.graph_.createView fermenterId, el, sample
 		@graphRegion.show @graphView
 		@graphView.render()
 
@@ -116,7 +117,7 @@ module.exports = class GraphLayout extends Backbone.Marionette.Layout
 		model = @model.get 'profile'
 		options =
 			model: model
-			application: application
+			application: @app
 		modal = new ProfileModalView options
 		application.layout.modal.show modal
 		false
@@ -124,10 +125,10 @@ module.exports = class GraphLayout extends Backbone.Marionette.Layout
 	changeProfile: (e) =>
 		fermenterId = @model.get 'fermenterId'
 		options = 
-			application: application
+			application: @app
 			fermenterId: fermenterId
 		modal = new ProfileSelectorView options
-		application.layout.modal.show modal
+		@app.layout.modal.show modal
 		false
 
 	# Not implemented...

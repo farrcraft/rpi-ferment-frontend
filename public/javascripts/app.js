@@ -81,7 +81,7 @@
 
 window.require.register("application", function(exports, require, module) {
   (function() {
-    var AppLayout, Application, Graph, ProfileController,
+    var AppLayout, Application, Graph, ProfileController, Router, Session,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
@@ -93,6 +93,10 @@ window.require.register("application", function(exports, require, module) {
     ProfileController = require('controllers/profile');
 
     AppLayout = require('views/layouts/AppLayout');
+
+    Router = require('lib/router');
+
+    Session = require('models/sessionModel');
 
     Application = (function(_super) {
 
@@ -111,6 +115,8 @@ window.require.register("application", function(exports, require, module) {
 
       Application.prototype.initialize = function() {
         var _this = this;
+        this.session = new Session();
+        window.session = this.session;
         this.graph_ = new Graph();
         this.on("initialize:after", function(options) {
           options = {
@@ -130,11 +136,27 @@ window.require.register("application", function(exports, require, module) {
           return _this.layout.render();
         });
         this.addInitializer(function(options) {
-          var Router;
-          Router = require('lib/router');
-          return _this.router = new Router();
+          options = {
+            application: _this
+          };
+          return _this.router = new Router(options);
         });
         return this.start();
+      };
+
+      Application.prototype.redirect = function(route) {
+        return window.location.hash = route;
+      };
+
+      Application.prototype.alert = function(type, msg) {
+        var AlertView, options, view;
+        AlertView = require('views/AlertView');
+        options = {
+          message: msg,
+          type: type
+        };
+        view = new AlertView(options);
+        return this.layout.alert.show(view);
       };
 
       return Application;
@@ -282,7 +304,8 @@ window.require.register("lib/config", function(exports, require, module) {
   (function() {
 
     module.exports = {
-      modelRoot: 'http://graphite:3010'
+      modelRoot: 'http://graphite:3010',
+      oauthSecret: '023c430fe2adf2700b1cbff5bc6ee78a2aff7ff6'
     };
 
   }).call(this);
@@ -1107,36 +1130,43 @@ window.require.register("lib/router", function(exports, require, module) {
         this.profile = __bind(this.profile, this);
         this.profiles = __bind(this.profiles, this);
         this.home = __bind(this.home, this);
+        this.initialize = __bind(this.initialize, this);
         Router.__super__.constructor.apply(this, arguments);
       }
 
       Router.prototype.routes = {
         '': 'home',
         'profiles': 'profiles',
-        'profile/:id': 'profile'
+        'profile/:id': 'profile',
+        'login': 'login',
+        'logout': 'logout'
+      };
+
+      Router.prototype.initialize = function(options) {
+        return this.app = options.application;
       };
 
       Router.prototype.home = function() {
         var home, options;
         options = {
-          application: window.RpiApp
+          application: this.app
         };
         home = new HomeLayout(options);
-        window.RpiApp.layout.content.close();
-        window.RpiApp.layout.content.show(home);
-        if (window.RpiApp.controller_.config_ !== void 0) {
-          return home.createCollection(window.RpiApp.controller_.config_);
+        this.app.layout.content.close();
+        this.app.layout.content.show(home);
+        if (this.app.controller_.config_ !== void 0) {
+          return home.createCollection(this.app.controller_.config_);
         }
       };
 
       Router.prototype.profiles = function() {
         var options, profiles;
         options = {
-          application: window.RpiApp
+          application: this.app
         };
         profiles = new ProfilesLayout(options);
-        window.RpiApp.layout.content.close();
-        window.RpiApp.layout.content.show(profiles);
+        this.app.layout.content.close();
+        this.app.layout.content.show(profiles);
         return profiles.showProfiles();
       };
 
@@ -1149,16 +1179,28 @@ window.require.register("lib/router", function(exports, require, module) {
         fetchSuccessHandler = function(profile, res, opts) {
           var options, view;
           options = {
-            application: window.RpiApp,
+            application: _this.app,
             model: profile
           };
           view = new ProfileDetailView(options);
-          window.RpiApp.layout.content.close();
-          return window.RpiApp.layout.content.show(view);
+          _this.app.layout.content.close();
+          return _this.app.layout.content.show(view);
         };
         model.fetch({
           success: fetchSuccessHandler
         });
+      };
+
+      Router.prototype.login = function() {
+        if (this.app.session.authenticated() === true) {
+          this.app.redirect('dashboard');
+        }
+        return this.displayView('views/LoginView');
+      };
+
+      Router.prototype.logout = function() {
+        if (this.app.session.authenticated() === true) this.app.session.logout();
+        return this.app.redirect('login');
       };
 
       return Router;
@@ -1488,8 +1530,85 @@ window.require.register("models/sampleModel", function(exports, require, module)
 });
 window.require.register("models/sessionModel", function(exports, require, module) {
   (function() {
+    var SessionModel, config,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
+    config = require('lib/config');
 
+    module.exports = SessionModel = (function(_super) {
+
+      __extends(SessionModel, _super);
+
+      function SessionModel() {
+        this.login = __bind(this.login, this);
+        SessionModel.__super__.constructor.apply(this, arguments);
+      }
+
+      SessionModel.prototype.urlRoot = config.modelRoot + '/session';
+
+      SessionModel.prototype.defaults = {
+        auth: false,
+        access_token: null
+      };
+
+      SessionModel.prototype.initialize = function() {
+        var session;
+        $.cookie.json = true;
+        session = $.cookie('session');
+        if (session !== void 0) {
+          this.set('auth', session.auth);
+          this.set('user_id', session.user_id);
+          return this.set('access_token', session.access_token);
+        }
+      };
+
+      SessionModel.prototype.login = function(email, password, next) {
+        var creds, loginSuccessHandler,
+          _this = this;
+        creds = {
+          email: email,
+          password: password,
+          client_id: config.oauthSecret
+        };
+        loginSuccessHandler = function(model) {
+          var auth, error, session;
+          error = model.get('error_message');
+          auth = false;
+          if (error === void 0) auth = true;
+          _this.set('auth', auth);
+          _this.set('id', null);
+          if (auth === true) {
+            session = {
+              auth: auth,
+              user_id: model.get('user_id'),
+              access_token: model.get('access_token')
+            };
+            $.cookie('session', session);
+          }
+          return next(model);
+        };
+        return this.save(creds, {
+          success: loginSuccessHandler
+        });
+      };
+
+      SessionModel.prototype.logout = function() {
+        this.set('auth', false);
+        this.set('user_id', null);
+        this.set('access_token', null);
+        this.save();
+        return $.removeCookie('session');
+      };
+
+      SessionModel.prototype.authenticated = function() {
+        return Boolean(this.get('auth'));
+      };
+
+      return SessionModel;
+
+    })(Backbone.Model);
 
   }).call(this);
   
@@ -1523,6 +1642,92 @@ window.require.register("models/stepModel", function(exports, require, module) {
       return StepModel;
 
     })(Backbone.Model);
+
+  }).call(this);
+  
+});
+window.require.register("views/AlertView", function(exports, require, module) {
+  (function() {
+    var AlertView, template,
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    template = require('./templates/alert');
+
+    module.exports = AlertView = (function(_super) {
+
+      __extends(AlertView, _super);
+
+      function AlertView() {
+        AlertView.__super__.constructor.apply(this, arguments);
+      }
+
+      AlertView.prototype.template = template;
+
+      AlertView.prototype.ui = {
+        box: '#alert-view'
+      };
+
+      AlertView.prototype.initialize = function(options) {
+        var attrs, className, message, type;
+        message = '';
+        if (options.message !== void 0) message = options.message;
+        type = 'info';
+        if (options.type !== void 0) type = options.type;
+        className = '';
+        if (options.message !== void 0 && options.message !== 'warning') {
+          className = 'alert-' + type;
+        }
+        attrs = {
+          message: message,
+          type: type,
+          className: className
+        };
+        return this.model = new Backbone.Model(attrs);
+      };
+
+      AlertView.prototype.message = function(msg) {
+        this.model.set('message', msg);
+        return this.render();
+      };
+
+      AlertView.prototype.info = function(msg) {
+        this.setAlertType('info');
+        return this.message(msg);
+      };
+
+      AlertView.prototype.success = function(msg) {
+        this.setAlertType('success');
+        return this.message(msg);
+      };
+
+      AlertView.prototype.error = function(msg) {
+        this.setAlertType('error');
+        return this.message(msg);
+      };
+
+      AlertView.prototype.warning = function(msg) {
+        this.setAlertType('warning');
+        return this.message(msg);
+      };
+
+      AlertView.prototype.setAlertType = function(type) {
+        var newClass, oldClass, oldType;
+        oldType = this.model.get('type');
+        oldClass = 'alert-' + oldType;
+        this.model.set('type', type);
+        newClass = '';
+        this.ui.box.removeClass(oldClass);
+        if (type !== 'warning') {
+          newClass = 'alert-' + type;
+          this.ui.box.addClass(newClass);
+        }
+        return this.model.set('className', newClass);
+      };
+
+      return AlertView;
+
+    })(Backbone.Marionette.ItemView);
 
   }).call(this);
   
@@ -1769,8 +1974,59 @@ window.require.register("views/HomeView", function(exports, require, module) {
 });
 window.require.register("views/LoginView", function(exports, require, module) {
   (function() {
+    var LoginView, template,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
+    template = require('./templates/login');
 
+    module.exports = LoginView = (function(_super) {
+
+      __extends(LoginView, _super);
+
+      function LoginView() {
+        this.login = __bind(this.login, this);
+        this.initialize = __bind(this.initialize, this);
+        LoginView.__super__.constructor.apply(this, arguments);
+      }
+
+      LoginView.prototype.template = template;
+
+      LoginView.prototype.ui = {
+        email: '#login-input-email',
+        password: '#login-input-password'
+      };
+
+      LoginView.prototype.events = {
+        'click #login-button': 'login'
+      };
+
+      LoginView.prototype.initialize = function(options) {
+        return this.app = options.application;
+      };
+
+      LoginView.prototype.login = function(e) {
+        var email, loginSuccess, password,
+          _this = this;
+        email = this.ui.email.val();
+        password = this.ui.password.val();
+        loginSuccess = function(model) {
+          var error;
+          error = model.get('error_message');
+          if (error === void 0) {
+            return _this.app.redirect('/');
+          } else {
+            return _this.app.alert('error', 'Login Error!');
+          }
+        };
+        this.app.session.login(email, password, loginSuccess);
+        return false;
+      };
+
+      return LoginView;
+
+    })(Backbone.Marionette.ItemView);
 
   }).call(this);
   
@@ -2006,12 +2262,10 @@ window.require.register("views/ProfileSelectorView", function(exports, require, 
 });
 window.require.register("views/ProfileView", function(exports, require, module) {
   (function() {
-    var FermentationStepModalView, FermentationStepView, ProfileModalView, ProfileView, StepCollection, StepModel, application, template,
+    var FermentationStepModalView, FermentationStepView, ProfileModalView, ProfileView, StepCollection, StepModel, template,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-    application = require('application');
 
     template = require('./templates/profile');
 
@@ -2050,7 +2304,9 @@ window.require.register("views/ProfileView", function(exports, require, module) 
         activateButton: '.activate'
       };
 
-      ProfileView.prototype.initialize = function(options) {};
+      ProfileView.prototype.initialize = function(options) {
+        this.app = options.application;
+      };
 
       ProfileView.prototype.onRender = function() {
         var state;
@@ -2163,11 +2419,9 @@ window.require.register("views/SampleView", function(exports, require, module) {
 });
 window.require.register("views/collections/GraphCollectionView", function(exports, require, module) {
   (function() {
-    var GraphCollectionView, GraphLayout, application,
+    var GraphCollectionView, GraphLayout,
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-    application = require('application');
 
     GraphLayout = require('views/layouts/GraphLayout');
 
@@ -2182,6 +2436,18 @@ window.require.register("views/collections/GraphCollectionView", function(export
       GraphCollectionView.prototype.tagName = 'div';
 
       GraphCollectionView.prototype.itemView = GraphLayout;
+
+      GraphCollectionView.prototype.initialize = function(options) {
+        return this.app = options.application;
+      };
+
+      GraphCollectionView.prototype.itemViewOptions = function(model, index) {
+        var options;
+        options = {
+          application: this.app
+        };
+        return options;
+      };
 
       return GraphCollectionView;
 
@@ -2211,6 +2477,14 @@ window.require.register("views/collections/ProfileCollectionView", function(expo
       ProfileCollectionView.prototype.tagName = 'div';
 
       ProfileCollectionView.prototype.itemView = ProfileView;
+
+      ProfileCollectionView.prototype.itemViewOptions = function(model, index) {
+        var options;
+        options = {
+          application: this.app
+        };
+        return options;
+      };
 
       ProfileCollectionView.prototype.initialize = function(options) {
         var _this = this;
@@ -2284,12 +2558,10 @@ window.require.register("views/layouts/AppLayout", function(exports, require, mo
 });
 window.require.register("views/layouts/GraphLayout", function(exports, require, module) {
   (function() {
-    var GraphLayout, HeaterView, ProfileModalView, ProfileSelectorView, SampleView, application,
+    var GraphLayout, HeaterView, ProfileModalView, ProfileSelectorView, SampleView, template,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-    application = require('application');
 
     HeaterView = require('views/HeaterView');
 
@@ -2298,6 +2570,8 @@ window.require.register("views/layouts/GraphLayout", function(exports, require, 
     ProfileModalView = require('views/modals/ProfileModalView');
 
     ProfileSelectorView = require('views/ProfileSelectorView');
+
+    template = require('views/templates/layouts/graphLayout');
 
     module.exports = GraphLayout = (function(_super) {
 
@@ -2316,7 +2590,7 @@ window.require.register("views/layouts/GraphLayout", function(exports, require, 
         GraphLayout.__super__.constructor.apply(this, arguments);
       }
 
-      GraphLayout.prototype.template = require('views/templates/graphLayout');
+      GraphLayout.prototype.template = template;
 
       GraphLayout.prototype.events = {
         'click .changeProfile': 'changeProfile',
@@ -2334,13 +2608,14 @@ window.require.register("views/layouts/GraphLayout", function(exports, require, 
       GraphLayout.prototype.initialize = function(options) {
         var updateProfileCallback,
           _this = this;
+        this.app = options.application;
         updateProfileCallback = function() {
           return _this.updateProfileData(true);
         };
-        application.vent.on('Profiles:Loaded', this.updateProfileCallback);
-        application.vent.on('Profile:Modified', this.updateProfileCallback);
+        this.app.vent.on('Profiles:Loaded', this.updateProfileCallback);
+        this.app.vent.on('Profile:Modified', this.updateProfileCallback);
         this.updateProfileData(false);
-        application.vent.on('Sensor:PV', this.updateSensorDisplay);
+        this.app.vent.on('Sensor:PV', this.updateSensorDisplay);
       };
 
       GraphLayout.prototype.updateSensorDisplay = function(data) {
@@ -2359,7 +2634,7 @@ window.require.register("views/layouts/GraphLayout", function(exports, require, 
           _this = this;
         fermenterId = this.model.get('fermenterId');
         activeProfile = null;
-        application.controller_.profiles_.each(function(profile) {
+        this.app.controller_.profiles_.each(function(profile) {
           var active, activeStep, sensor, step, steps;
           sensor = profile.get('sensor');
           active = profile.get('active');
@@ -2411,7 +2686,7 @@ window.require.register("views/layouts/GraphLayout", function(exports, require, 
         options = {
           fermenterId: fermenterId,
           layout: this,
-          application: application,
+          application: this.app,
           graphModel: this.model,
           gpio: gpio
         };
@@ -2431,7 +2706,7 @@ window.require.register("views/layouts/GraphLayout", function(exports, require, 
         fermenterId = this.model.get('fermenterId');
         sample = this.model.get('sample');
         el = fermenterId;
-        this.graphView = application.graph_.createView(fermenterId, el, sample);
+        this.graphView = this.app.graph_.createView(fermenterId, el, sample);
         this.graphRegion.show(this.graphView);
         return this.graphView.render();
       };
@@ -2445,7 +2720,7 @@ window.require.register("views/layouts/GraphLayout", function(exports, require, 
         model = this.model.get('profile');
         options = {
           model: model,
-          application: application
+          application: this.app
         };
         modal = new ProfileModalView(options);
         application.layout.modal.show(modal);
@@ -2456,11 +2731,11 @@ window.require.register("views/layouts/GraphLayout", function(exports, require, 
         var fermenterId, modal, options;
         fermenterId = this.model.get('fermenterId');
         options = {
-          application: application,
+          application: this.app,
           fermenterId: fermenterId
         };
         modal = new ProfileSelectorView(options);
-        application.layout.modal.show(modal);
+        this.app.layout.modal.show(modal);
         return false;
       };
 
@@ -2543,9 +2818,11 @@ window.require.register("views/layouts/HomeLayout", function(exports, require, m
           return _results;
         })();
         collection = new GraphCollection(models);
-        view = new GraphCollectionView({
-          collection: collection
-        });
+        options = {
+          collection: collection,
+          application: this.app
+        };
+        view = new GraphCollectionView(options);
         return this.graphRegion.show(view);
       };
 
@@ -2618,7 +2895,7 @@ window.require.register("views/modals/FermentationStepModalView", function(expor
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
-    template = require('./templates/modals/fermentationStepModal');
+    template = require('views/templates/modals/fermentationStepModal');
 
     StepModel = require('models/stepModel');
 
@@ -2707,7 +2984,7 @@ window.require.register("views/modals/ProfileModalView", function(exports, requi
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
-    template = require('./templates/modals/profileModal');
+    template = require('views/templates/modals/profileModal');
 
     ProfileModel = require('models/profileModel');
 
@@ -2757,6 +3034,25 @@ window.require.register("views/modals/ProfileModalView", function(exports, requi
   }).call(this);
   
 });
+window.require.register("views/templates/alert", function(exports, require, module) {
+  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+    helpers = helpers || Handlebars.helpers;
+    var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
+
+
+    buffer += "<div id=\"alert-view\" class=\"alert ";
+    foundHelper = helpers.className;
+    stack1 = foundHelper || depth0.className;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "className", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\">\n  <button type=\"button\" class=\"close\" data-dismiss=\"alert\">&times;</button>\n  ";
+    foundHelper = helpers.message;
+    stack1 = foundHelper || depth0.message;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "message", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "\n</div>\n";
+    return buffer;});
+});
 window.require.register("views/templates/heater", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
@@ -2795,7 +3091,7 @@ window.require.register("views/templates/layouts/appLayout", function(exports, r
     var foundHelper, self=this;
 
 
-    return "<div id=\"nav\" class=\"navbar navbar-fixed-top\">\n	<div class=\"navbar-inner\">\n		<div class=\"container\">\n			<a class=\"brand\" href=\"#\">RPi Ferment</a>\n			<ul class=\"nav\">\n				<li><a id=\"profiles-nav\" href=\"#profiles\">Profiles</a></li>\n				<li><a id=\"new-profile-nav\" href=\"#\">New Profile</a></li>\n			</ul>\n			<p class=\"navbar-text pull-right\" title=\"Ambient Temperature\" id=\"ambient-display\"></p>\n		</div>\n	</div>\n</div>\n\n<div id=\"content\" class=\"container\"></div>\n<div id=\"modal\" class=\"modal hide fade\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"profileModalLabel\" aria-hidden=\"true\">\n</div>";});
+    return "<div id=\"nav\" class=\"navbar navbar-fixed-top\">\n	<div class=\"navbar-inner\">\n		<div class=\"container\">\n			<a class=\"brand\" href=\"#\">RPi Ferment</a>\n			<ul class=\"nav\">\n				<li><a id=\"profiles-nav\" href=\"#profiles\">Profiles</a></li>\n				<li><a id=\"new-profile-nav\" href=\"#\">New Profile</a></li>\n				<li><a id=\"login-nav\" href=\"#login\">Login</a></li>\n			</ul>\n			<p class=\"navbar-text pull-right\" title=\"Ambient Temperature\" id=\"ambient-display\"></p>\n		</div>\n	</div>\n</div>\n\n<div id=\"alert-box\" class=\"container\"></div>\n\n<div id=\"content\" class=\"container\"></div>\n<div id=\"modal\" class=\"modal hide fade\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"profileModalLabel\" aria-hidden=\"true\">\n</div>";});
 });
 window.require.register("views/templates/layouts/graphLayout", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {

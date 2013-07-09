@@ -1,7 +1,7 @@
 # rpi-ferment-frontend
-# Copyright(c) Joshua  Farr <j.wgasa@gmail.com>
+# Copyright(c) Joshua Farr <j.wgasa@gmail.com>
 
-template 		= require './templates/modals/profileModal'
+template 		= require 'views/templates/modals/profileModal'
 ProfileModel 	= require 'models/profileModel'
 
 module.exports = class ProfileModalView extends Backbone.Marionette.ItemView
