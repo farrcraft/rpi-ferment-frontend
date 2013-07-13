@@ -57,3 +57,18 @@ module.exports = class Router extends Backbone.Router
 		if @app.session.authenticated() is true
 			@app.session.logout()
 		@app.redirect 'login'
+
+	# Helper to fetch a named collection
+	fetchCollection: (collectionName) ->
+		Collection = require collectionName
+		collection = new Collection()
+		collection.fetch()
+		collection
+
+	# Helper to display a named view
+	displayView: (viewName, options) =>
+		View = require viewName
+		options ?= {} 
+		options.application = @app
+		view = new View options
+		@app.layout.content.show view

@@ -1127,6 +1127,7 @@ window.require.register("lib/router", function(exports, require, module) {
       __extends(Router, _super);
 
       function Router() {
+        this.displayView = __bind(this.displayView, this);
         this.profile = __bind(this.profile, this);
         this.profiles = __bind(this.profiles, this);
         this.home = __bind(this.home, this);
@@ -1201,6 +1202,23 @@ window.require.register("lib/router", function(exports, require, module) {
       Router.prototype.logout = function() {
         if (this.app.session.authenticated() === true) this.app.session.logout();
         return this.app.redirect('login');
+      };
+
+      Router.prototype.fetchCollection = function(collectionName) {
+        var Collection, collection;
+        Collection = require(collectionName);
+        collection = new Collection();
+        collection.fetch();
+        return collection;
+      };
+
+      Router.prototype.displayView = function(viewName, options) {
+        var View, view;
+        View = require(viewName);
+        if (options == null) options = {};
+        options.application = this.app;
+        view = new View(options);
+        return this.app.layout.content.show(view);
       };
 
       return Router;
