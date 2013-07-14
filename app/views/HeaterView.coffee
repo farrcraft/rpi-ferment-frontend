@@ -86,7 +86,8 @@ module.exports = class HeaterView extends Backbone.Marionette.ItemView
 			profile.save()
 
 		@setHeaterState value
-		@app.controller_.socket_.emit 'setgpio', @fermenterId, value
+		token = @app.session.get 'access_token'
+		@app.controller_.socket_.emit 'setgpio', @fermenterId, value, token
 		false
 
 	# Resume the current profile step

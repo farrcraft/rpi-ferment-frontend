@@ -1948,7 +1948,7 @@ window.require.register("views/HeaterView", function(exports, require, module) {
       };
 
       HeaterView.prototype.heaterOverride = function(e) {
-        var newState, oldState, override, overrides, profile, value;
+        var newState, oldState, override, overrides, profile, token, value;
         oldState = this.model.get('state');
         newState = 'on';
         value = true;
@@ -1968,7 +1968,8 @@ window.require.register("views/HeaterView", function(exports, require, module) {
           profile.save();
         }
         this.setHeaterState(value);
-        this.app.controller_.socket_.emit('setgpio', this.fermenterId, value);
+        token = this.app.session.get('access_token');
+        this.app.controller_.socket_.emit('setgpio', this.fermenterId, value, token);
         return false;
       };
 
