@@ -124,7 +124,7 @@ module.exports = class GraphLayout extends Backbone.Marionette.Layout
 			model: model
 			application: @app
 		modal = new ProfileModalView options
-		application.layout.modal.show modal
+		@app.layout.modal.show modal
 		false
 
 	changeProfile: (e) =>

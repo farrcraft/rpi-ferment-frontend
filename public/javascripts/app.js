@@ -2847,7 +2847,7 @@ window.require.register("views/layouts/GraphLayout", function(exports, require, 
           application: this.app
         };
         modal = new ProfileModalView(options);
-        application.layout.modal.show(modal);
+        this.app.layout.modal.show(modal);
         return false;
       };
 
