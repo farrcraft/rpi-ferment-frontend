@@ -31,7 +31,7 @@ module.exports = class ProfileDetailView extends Backbone.Marionette.CompositeVi
 					@loadSteps()
 					@render()
 
-	onRender: () ->
+	onBeforeRender: () ->
 		if @app.session.authenticated() is true
 			@model.set 'loggedIn', true
 

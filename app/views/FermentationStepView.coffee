@@ -14,7 +14,7 @@ module.exports = class FermentationStepView extends Backbone.Marionette.ItemView
 	initialize: (options) =>
 		@app = options.application
 
-	onRender: () ->
+	onBeforeRender: () ->
 		if @app.session.authenticated() is true
 			@model.set 'loggedIn', true
 

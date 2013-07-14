@@ -1810,7 +1810,7 @@ window.require.register("views/FermentationStepView", function(exports, require,
         return this.app = options.application;
       };
 
-      FermentationStepView.prototype.onRender = function() {
+      FermentationStepView.prototype.onBeforeRender = function() {
         if (this.app.session.authenticated() === true) {
           return this.model.set('loggedIn', true);
         }
@@ -2242,7 +2242,7 @@ window.require.register("views/ProfileDetailView", function(exports, require, mo
         });
       };
 
-      ProfileDetailView.prototype.onRender = function() {
+      ProfileDetailView.prototype.onBeforeRender = function() {
         if (this.app.session.authenticated() === true) {
           return this.model.set('loggedIn', true);
         }
@@ -2417,10 +2417,15 @@ window.require.register("views/ProfileView", function(exports, require, module) 
         this.app = options.application;
       };
 
+      ProfileView.prototype.onBeforeRender = function() {
+        if (this.app.session.authenticated() === true) {
+          return this.model.set('loggedIn', true);
+        }
+      };
+
       ProfileView.prototype.onRender = function() {
         var state;
         if (this.app.session.authenticated() === true) {
-          this.model.set('loggedIn', true);
           state = this.model.get('active');
           if (state) return this.ui.activateButton.text('deactivate');
         }
