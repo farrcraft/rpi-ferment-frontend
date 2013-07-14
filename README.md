@@ -68,7 +68,7 @@ Each step has an integer number indicating its position in the sequence of all p
 - Node.js
 - node-static
 - CoffeeScript
-- Brunch
+- [Brunch](http://brunch.io/)
 
 For runtime all that is required is a working node installation and the node-static module.  
 
@@ -92,3 +92,15 @@ The application is built using a host of 3rd party libraries.  Most of these are
 - [Moment.js](http://momentjs.com/)
 - [Handlebars Helpers](https://gist.github.com/elidupuis/1468937)
 - [node-static](https://github.com/cloudhead/node-static)
+
+## Deploy
+
+Example scripts are included for deploying the application to a web server using Capistrano and [Capper](https://github.com/zenops/capper).
+
+Use the Ruby bundler gem to install Capper:
+
+``` bash
+  $ gem install bundler
+  $ bundle install
+```
+
