@@ -24,9 +24,11 @@ module.exports = class ProfileView extends Backbone.Marionette.CompositeView
 			return
 
 		onRender: () ->
-			state = @model.get 'active'
-			if state
-				@ui.activateButton.text 'deactivate'
+			if @app.session.authenticated() is true
+				@model.set 'loggedIn', true
+				state = @model.get 'active'
+				if state
+					@ui.activateButton.text 'deactivate'
 
 		activateProfile: (e) ->
 			state = @model.get 'active'

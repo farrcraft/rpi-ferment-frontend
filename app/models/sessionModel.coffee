@@ -28,7 +28,7 @@ module.exports = class SessionModel extends Backbone.Model
 			if error is undefined
 				auth = true
 			@set 'auth', auth
-			@set 'id', null
+			@set 'user_id', null
 			if auth is true
 				session = 
 					auth: auth

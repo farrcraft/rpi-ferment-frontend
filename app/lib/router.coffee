@@ -51,6 +51,7 @@ module.exports = class Router extends Backbone.Router
 	login: ->
 		if @app.session.authenticated() is true
 			@app.redirect 'dashboard'
+			return
 		@displayView 'views/LoginView'
 
 	logout: ->

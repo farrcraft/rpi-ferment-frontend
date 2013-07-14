@@ -1,9 +1,10 @@
 # rpi-ferment-frontend
 # Copyright(c) Joshua Farr <j.wgasa@gmail.com>
 
-config = require 'lib/config'
+config 	= require 'lib/config'
+Model 	= require 'models/model'
 
-module.exports = class ProfileModel extends Backbone.Model
+module.exports = class ProfileModel extends Model
 	urlRoot: config.modelRoot + '/profiles'
 	idAttribute: '_id'
 	defaults:

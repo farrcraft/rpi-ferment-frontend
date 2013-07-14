@@ -1,0 +1,17 @@
+<div id="nav" class="navbar navbar-fixed-top">
+	<div class="navbar-inner">
+		<div class="container">
+			<a class="brand" href="#">RPi Ferment</a>
+			<ul class="nav">
+				<li><a id="profiles-nav" href="#profiles">Profiles</a></li>
+				{{#if loggedIn}}
+				<li><a id="new-profile-nav" href="#">New Profile</a></li>
+				<li><a id="logout-nav" href="#logout">Logout</a></li>
+				{{else}}
+				<li><a id="login-nav" href="#login">Login</a></li>
+				{{/if}}
+			</ul>
+			<p class="navbar-text pull-right" title="Ambient Temperature" id="ambient-display"></p>
+		</div>
+	</div>
+</div>

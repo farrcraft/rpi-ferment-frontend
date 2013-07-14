@@ -82,12 +82,17 @@ module.exports = class GraphLayout extends Backbone.Marionette.Layout
 
 		gpio = @model.get 'gpio'
 
+		loggedIn = false
+		if @app.session.authenticated() is true
+			loggedIn = true
+
 		options =
 			fermenterId: fermenterId
 			layout: @
 			application: @app
 			graphModel: @model
 			gpio: gpio
+			loggedIn: loggedIn
 
 		heaterView = new HeaterView options
 		@heaterRegion.show heaterView

@@ -31,6 +31,10 @@ module.exports = class ProfileDetailView extends Backbone.Marionette.CompositeVi
 					@loadSteps()
 					@render()
 
+	onRender: () ->
+		if @app.session.authenticated() is true
+			@model.set 'loggedIn', true
+
 	loadSteps: () ->
 		@collection = new StepCollection()
 		steps = @model.get 'steps'

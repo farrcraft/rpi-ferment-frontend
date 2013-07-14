@@ -2,11 +2,13 @@
 	<div class="span9">
 		<h3>{{fermenterName}}</h3>
 		<div id="{{fermenterId}}_graphRegion"></div>
-		<div class="graph-profile-heading">Fermenting: <span class="activeProfile">{{profileName}}</span> <a class="editProfile" title="Edit" href="#"><i class="icon-pencil"></i></a></div>
+		<div class="graph-profile-heading">Fermenting: <span class="activeProfile">{{profileName}}</span> {{#if loggedIn}}<a class="editProfile" title="Edit" href="#"><i class="icon-pencil"></i></a>{{/if}}</div>
 		<h6 class="activeStep">{{activeStep}}</h6>
+		{{#if loggedIn}}
 		<div>
 			<a class="changeProfile" href="#">[change profile]</a>
 		</div>
+		{{/if}}
 		<br />
 		<strong>PV:</strong> <span id="{{fermenterId}}_sensorPV" title="Current PV"></span>
 		<div id="{{fermenterId}}_heaterRegion"></div>

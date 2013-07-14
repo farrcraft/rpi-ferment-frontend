@@ -11,13 +11,17 @@
 	</div>
 </div>
 <br />
+{{#if loggedIn}}
 <button class="edit" title="Edit Profile"><i class="icon-edit"></i> Edit Profile</button>
+{{/if}}
 <hr />
 <h4>Steps</h4>
 <table id="steps">
 </table>
 <br />
+{{#if loggedIn}}
 <button class="add-step" title="Add Step" class="btn btn-mini"><i class="icon-plus"></i> Add Step</button>
+{{/if}}
 <hr />
 <h4>Override History</h4>
 <ul id="overrides">

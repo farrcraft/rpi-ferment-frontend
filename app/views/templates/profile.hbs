@@ -1,5 +1,7 @@
 <td>{{name}}</td>
+{{#if loggedIn}}
 <td><a class="edit" title="Edit" href="#"><i class="icon-edit"></i></a></td>
 <td><a class="delete" title="Delete" href="#"><i class="icon-trash"></i></a></td>
 <td><a class="activate" href="#">activate</a></td>
+{{/if}}
 <td><a class="details" title="Details" href="#profile/{{_id}}"><i class="icon-ellipsis-horizontal"></i></a></td>

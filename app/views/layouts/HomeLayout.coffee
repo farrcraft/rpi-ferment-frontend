@@ -18,6 +18,9 @@ module.exports = class HomeLayout extends Backbone.Marionette.Layout
 
 	createCollection: (config) =>
 		models = []
+		loggedIn = false
+		if @app.session.authenticated() is true
+			loggedIn = true
 		sensor = for sensor in config.sensors
 			if sensor.type is 'fermenter'
 
@@ -32,6 +35,7 @@ module.exports = class HomeLayout extends Backbone.Marionette.Layout
 					heaterState: 'Off'
 					sampleOptions: [2, 4, 6, 8, 12, 24]
 					sampleRate:  24
+					loggedIn: loggedIn
 
 				model = new GraphModel options
 				models.push model

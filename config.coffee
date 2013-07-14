@@ -10,6 +10,9 @@ exports.config =
         before: [
           'vendor/scripts/console-helper.js'
           'vendor/scripts/jquery.js'
+          'vendor/scripts/jquery.base64.js'
+          'vendor/scripts/jquery.cookie.js'
+          'vendor/scripts/json2.js'
           'vendor/scripts/underscore.js'
           'vendor/scripts/backbone.js'
           'vendor/scripts/backbone.marionette.js'
@@ -18,8 +21,6 @@ exports.config =
           'vendor/scripts/d3.js'
           'vendor/scripts/moment.js'
           'vendor/scripts/bootstrap-spinedit.js'
-          'vendor/scripts/jquery.base64.js'
-          'vendor/scripts/jquery.cookie.js'
         ]
 
     stylesheets:

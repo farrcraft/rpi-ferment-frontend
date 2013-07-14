@@ -1,5 +1,7 @@
-<td>{{order}}</td>
+<td>{{order}} &dot;</td>
 <td>{{name}} - {{duration}} {{unit}} @ {{stepTemperature start_temperature end_temperature}}</td>
+{{#if loggedIn}}
 <td>
 	<a class="edit-step" title="Edit" href="#"><i class="icon-edit"></i></a> <a class="delete-step" title="Delete" href="#"><i class="icon-trash"></i></a>
 </td>
+{{/if}}

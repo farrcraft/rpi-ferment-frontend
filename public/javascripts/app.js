@@ -1195,6 +1195,7 @@ window.require.register("lib/router", function(exports, require, module) {
       Router.prototype.login = function() {
         if (this.app.session.authenticated() === true) {
           this.app.redirect('dashboard');
+          return;
         }
         return this.displayView('views/LoginView');
       };
@@ -1318,6 +1319,17 @@ window.require.register("models/collections/collection", function(exports, requi
       function Collection() {
         Collection.__super__.constructor.apply(this, arguments);
       }
+
+      Collection.prototype.sync = function(method, model, options) {
+        var token;
+        token = window.session.get('access_token');
+        if (token !== null) {
+          options.beforeSend = function(jqXHR) {
+            return jqXHR.setRequestHeader('Authorization', 'Bearer ' + $.base64.encode(token));
+          };
+        }
+        return Backbone.sync.call(this, method, model, options);
+      };
 
       return Collection;
 
@@ -1466,6 +1478,17 @@ window.require.register("models/model", function(exports, require, module) {
         Model.__super__.constructor.apply(this, arguments);
       }
 
+      Model.prototype.sync = function(method, model, options) {
+        var token;
+        token = window.session.get('access_token');
+        if (token !== null) {
+          options.beforeSend = function(jqXHR) {
+            return jqXHR.setRequestHeader('Authorization', 'Bearer ' + $.base64.encode(token));
+          };
+        }
+        return Backbone.sync.call(this, method, model, options);
+      };
+
       return Model;
 
     })(Backbone.Model);
@@ -1475,11 +1498,13 @@ window.require.register("models/model", function(exports, require, module) {
 });
 window.require.register("models/profileModel", function(exports, require, module) {
   (function() {
-    var ProfileModel, config,
+    var Model, ProfileModel, config,
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
     config = require('lib/config');
+
+    Model = require('models/model');
 
     module.exports = ProfileModel = (function(_super) {
 
@@ -1513,7 +1538,7 @@ window.require.register("models/profileModel", function(exports, require, module
 
       return ProfileModel;
 
-    })(Backbone.Model);
+    })(Model);
 
   }).call(this);
   
@@ -1596,7 +1621,7 @@ window.require.register("models/sessionModel", function(exports, require, module
           auth = false;
           if (error === void 0) auth = true;
           _this.set('auth', auth);
-          _this.set('id', null);
+          _this.set('user_id', null);
           if (auth === true) {
             session = {
               auth: auth,
@@ -1783,6 +1808,12 @@ window.require.register("views/FermentationStepView", function(exports, require,
 
       FermentationStepView.prototype.initialize = function(options) {
         return this.app = options.application;
+      };
+
+      FermentationStepView.prototype.onRender = function() {
+        if (this.app.session.authenticated() === true) {
+          return this.model.set('loggedIn', true);
+        }
       };
 
       FermentationStepView.prototype.editStep = function(e) {
@@ -2094,6 +2125,60 @@ window.require.register("views/ModalRegion", function(exports, require, module) 
   }).call(this);
   
 });
+window.require.register("views/NavView", function(exports, require, module) {
+  (function() {
+    var NavView, template,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    template = require('./templates/nav');
+
+    module.exports = NavView = (function(_super) {
+
+      __extends(NavView, _super);
+
+      function NavView() {
+        this.initialize = __bind(this.initialize, this);
+        NavView.__super__.constructor.apply(this, arguments);
+      }
+
+      NavView.prototype.template = template;
+
+      NavView.prototype.initialize = function(options) {
+        var sessionChangeHandler,
+          _this = this;
+        this.model = new Backbone.Model();
+        this.app = options.application;
+        if (this.app.session.authenticated() === true) {
+          this.model.set('loggedIn', true);
+        }
+        sessionChangeHandler = function(session) {
+          _this.syncModel();
+          return _this.render();
+        };
+        this.app.session.on('change:auth', sessionChangeHandler);
+        return this.app.vent.on('Sensor:PV', function(data) {
+          var display;
+          if (data.sensor === "ambient") {
+            display = data.pv.toFixed(2);
+            display = display + '&deg;';
+            return $('#ambient-display').html(display);
+          }
+        });
+      };
+
+      NavView.prototype.syncModel = function() {
+        return this.model.set('loggedIn', this.app.session.authenticated());
+      };
+
+      return NavView;
+
+    })(Backbone.Marionette.ItemView);
+
+  }).call(this);
+  
+});
 window.require.register("views/ProfileDetailView", function(exports, require, module) {
   (function() {
     var FermentationStepModalView, FermentationStepView, ProfileDetailView, ProfileModalView, StepCollection, StepModel, template,
@@ -2155,6 +2240,12 @@ window.require.register("views/ProfileDetailView", function(exports, require, mo
             }
           });
         });
+      };
+
+      ProfileDetailView.prototype.onRender = function() {
+        if (this.app.session.authenticated() === true) {
+          return this.model.set('loggedIn', true);
+        }
       };
 
       ProfileDetailView.prototype.loadSteps = function() {
@@ -2328,8 +2419,11 @@ window.require.register("views/ProfileView", function(exports, require, module) 
 
       ProfileView.prototype.onRender = function() {
         var state;
-        state = this.model.get('active');
-        if (state) return this.ui.activateButton.text('deactivate');
+        if (this.app.session.authenticated() === true) {
+          this.model.set('loggedIn', true);
+          state = this.model.get('active');
+          if (state) return this.ui.activateButton.text('deactivate');
+        }
       };
 
       ProfileView.prototype.activateProfile = function(e) {
@@ -2526,7 +2620,7 @@ window.require.register("views/collections/ProfileCollectionView", function(expo
 });
 window.require.register("views/layouts/AppLayout", function(exports, require, module) {
   (function() {
-    var AppLayout, ModalRegion, template,
+    var AppLayout, ModalRegion, NavView, template,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
@@ -2535,11 +2629,14 @@ window.require.register("views/layouts/AppLayout", function(exports, require, mo
 
     template = require('views/templates/layouts/appLayout');
 
+    NavView = require('views/NavView');
+
     module.exports = AppLayout = (function(_super) {
 
       __extends(AppLayout, _super);
 
       function AppLayout() {
+        this.onRender = __bind(this.onRender, this);
         this.initialize = __bind(this.initialize, this);
         AppLayout.__super__.constructor.apply(this, arguments);
       }
@@ -2549,22 +2646,23 @@ window.require.register("views/layouts/AppLayout", function(exports, require, mo
       AppLayout.prototype.el = "body";
 
       AppLayout.prototype.regions = {
-        nav: "#nav",
+        nav: "#top-nav",
         content: "#content",
+        alert: "#alert-box",
         modal: ModalRegion
       };
 
       AppLayout.prototype.initialize = function(options) {
-        var _this = this;
-        this.app = options.application;
-        return this.app.vent.on('Sensor:PV', function(data) {
-          var display;
-          if (data.sensor === "ambient") {
-            display = data.pv.toFixed(2);
-            display = display + '&deg;';
-            return $('#ambient-display').html(display);
-          }
-        });
+        return this.app = options.application;
+      };
+
+      AppLayout.prototype.onRender = function() {
+        var options, view;
+        options = {
+          application: this.app
+        };
+        view = new NavView(options);
+        return this.nav.show(view);
       };
 
       return AppLayout;
@@ -2691,7 +2789,7 @@ window.require.register("views/layouts/GraphLayout", function(exports, require, 
       };
 
       GraphLayout.prototype.onRender = function() {
-        var fermenterId, gpio, graphRegionId, heaterRegionId, heaterView, options, profile, sampleRegionId, sampleView;
+        var fermenterId, gpio, graphRegionId, heaterRegionId, heaterView, loggedIn, options, profile, sampleRegionId, sampleView;
         fermenterId = this.model.get('fermenterId');
         graphRegionId = fermenterId + '_graphRegion';
         sampleRegionId = fermenterId + '_sampleRegion';
@@ -2701,12 +2799,15 @@ window.require.register("views/layouts/GraphLayout", function(exports, require, 
         this.heaterRegion = this.addRegion(heaterRegionId, '#' + heaterRegionId);
         this.renderGraph();
         gpio = this.model.get('gpio');
+        loggedIn = false;
+        if (this.app.session.authenticated() === true) loggedIn = true;
         options = {
           fermenterId: fermenterId,
           layout: this,
           application: this.app,
           graphModel: this.model,
-          gpio: gpio
+          gpio: gpio,
+          loggedIn: loggedIn
         };
         heaterView = new HeaterView(options);
         this.heaterRegion.show(heaterView);
@@ -2806,8 +2907,10 @@ window.require.register("views/layouts/HomeLayout", function(exports, require, m
       };
 
       HomeLayout.prototype.createCollection = function(config) {
-        var collection, model, models, options, sensor, view;
+        var collection, loggedIn, model, models, options, sensor, view;
         models = [];
+        loggedIn = false;
+        if (this.app.session.authenticated() === true) loggedIn = true;
         sensor = (function() {
           var _i, _len, _ref, _results;
           _ref = config.sensors;
@@ -2825,7 +2928,8 @@ window.require.register("views/layouts/HomeLayout", function(exports, require, m
                 profileName: sensor.name,
                 heaterState: 'Off',
                 sampleOptions: [2, 4, 6, 8, 12, 24],
-                sampleRate: 24
+                sampleRate: 24,
+                loggedIn: loggedIn
               };
               model = new GraphModel(options);
               _results.push(models.push(model));
@@ -3074,8 +3178,18 @@ window.require.register("views/templates/alert", function(exports, require, modu
 window.require.register("views/templates/heater", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
-    var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
+    var buffer = "", stack1, stack2, foundHelper, tmp1, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
+  function program1(depth0,data) {
+    
+    var buffer = "", stack1;
+    buffer += "<a id=\"";
+    foundHelper = helpers.fermenterId;
+    stack1 = foundHelper || depth0.fermenterId;
+    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
+    buffer += escapeExpression(stack1) + "_heaterOverride\" class=\"heaterOverride\" href=\"#\">[override]</a> <a class=\"overrideResume\" href=\"#\">[resume]</a>";
+    return buffer;}
 
     buffer += "<div id=\"";
     foundHelper = helpers.fermenterId;
@@ -3087,12 +3201,17 @@ window.require.register("views/templates/heater", function(exports, require, mod
     stack1 = foundHelper || depth0.state;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "state", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</strong> <a id=\"";
-    foundHelper = helpers.fermenterId;
-    stack1 = foundHelper || depth0.fermenterId;
-    if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-    else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "fermenterId", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "_heaterOverride\" class=\"heaterOverride\" href=\"#\">[override]</a> <a class=\"overrideResume\" href=\"#\">[resume]</a>\n";
+    buffer += escapeExpression(stack1) + "</strong> ";
+    foundHelper = helpers.loggedIn;
+    stack1 = foundHelper || depth0.loggedIn;
+    stack2 = helpers['if'];
+    tmp1 = self.program(1, program1, data);
+    tmp1.hash = {};
+    tmp1.fn = tmp1;
+    tmp1.inverse = self.noop;
+    stack1 = stack2.call(depth0, stack1, tmp1);
+    if(stack1 || stack1 === 0) { buffer += stack1; }
+    buffer += "\n";
     return buffer;});
 });
 window.require.register("views/templates/home", function(exports, require, module) {
@@ -3109,13 +3228,22 @@ window.require.register("views/templates/layouts/appLayout", function(exports, r
     var foundHelper, self=this;
 
 
-    return "<div id=\"nav\" class=\"navbar navbar-fixed-top\">\n	<div class=\"navbar-inner\">\n		<div class=\"container\">\n			<a class=\"brand\" href=\"#\">RPi Ferment</a>\n			<ul class=\"nav\">\n				<li><a id=\"profiles-nav\" href=\"#profiles\">Profiles</a></li>\n				<li><a id=\"new-profile-nav\" href=\"#\">New Profile</a></li>\n				<li><a id=\"login-nav\" href=\"#login\">Login</a></li>\n			</ul>\n			<p class=\"navbar-text pull-right\" title=\"Ambient Temperature\" id=\"ambient-display\"></p>\n		</div>\n	</div>\n</div>\n\n<div id=\"alert-box\" class=\"container\"></div>\n\n<div id=\"content\" class=\"container\"></div>\n<div id=\"modal\" class=\"modal hide fade\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"profileModalLabel\" aria-hidden=\"true\">\n</div>";});
+    return "<div id=\"top-nav\"></div>\n\n<div id=\"alert-box\" class=\"container\"></div>\n\n<div id=\"content\" class=\"container\"></div>\n<div id=\"modal\" class=\"modal hide fade\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"profileModalLabel\" aria-hidden=\"true\">\n</div>";});
 });
 window.require.register("views/templates/layouts/graphLayout", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
-    var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
+    var buffer = "", stack1, stack2, foundHelper, tmp1, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
+  function program1(depth0,data) {
+    
+    
+    return "<a class=\"editProfile\" title=\"Edit\" href=\"#\"><i class=\"icon-pencil\"></i></a>";}
+
+  function program3(depth0,data) {
+    
+    
+    return "\n		<div>\n			<a class=\"changeProfile\" href=\"#\">[change profile]</a>\n		</div>\n		";}
 
     buffer += "<div class=\"row\">\n	<div class=\"span9\">\n		<h3>";
     foundHelper = helpers.fermenterName;
@@ -3132,12 +3260,32 @@ window.require.register("views/templates/layouts/graphLayout", function(exports,
     stack1 = foundHelper || depth0.profileName;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "profileName", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</span> <a class=\"editProfile\" title=\"Edit\" href=\"#\"><i class=\"icon-pencil\"></i></a></div>\n		<h6 class=\"activeStep\">";
+    buffer += escapeExpression(stack1) + "</span> ";
+    foundHelper = helpers.loggedIn;
+    stack1 = foundHelper || depth0.loggedIn;
+    stack2 = helpers['if'];
+    tmp1 = self.program(1, program1, data);
+    tmp1.hash = {};
+    tmp1.fn = tmp1;
+    tmp1.inverse = self.noop;
+    stack1 = stack2.call(depth0, stack1, tmp1);
+    if(stack1 || stack1 === 0) { buffer += stack1; }
+    buffer += "</div>\n		<h6 class=\"activeStep\">";
     foundHelper = helpers.activeStep;
     stack1 = foundHelper || depth0.activeStep;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "activeStep", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</h6>\n		<div>\n			<a class=\"changeProfile\" href=\"#\">[change profile]</a>\n		</div>\n		<br />\n		<strong>PV:</strong> <span id=\"";
+    buffer += escapeExpression(stack1) + "</h6>\n		";
+    foundHelper = helpers.loggedIn;
+    stack1 = foundHelper || depth0.loggedIn;
+    stack2 = helpers['if'];
+    tmp1 = self.program(3, program3, data);
+    tmp1.hash = {};
+    tmp1.fn = tmp1;
+    tmp1.inverse = self.noop;
+    stack1 = stack2.call(depth0, stack1, tmp1);
+    if(stack1 || stack1 === 0) { buffer += stack1; }
+    buffer += "\n		<br />\n		<strong>PV:</strong> <span id=\"";
     foundHelper = helpers.fermenterId;
     stack1 = foundHelper || depth0.fermenterId;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
@@ -3292,18 +3440,60 @@ window.require.register("views/templates/modals/profileModal", function(exports,
     buffer += "\n					</select>\n				</div>\n			</div>\n		</form>\n	</div>\n	<div class=\"modal-footer\">\n		<button class=\"btn\" data-dismiss=\"modal\" aria-hidden=\"true\">Close</button>\n		<button id=\"save-profile\" class=\"btn btn-primary\">Save changes</button>\n	</div>\n</div>";
     return buffer;});
 });
+window.require.register("views/templates/nav", function(exports, require, module) {
+  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+    helpers = helpers || Handlebars.helpers;
+    var buffer = "", stack1, stack2, foundHelper, tmp1, self=this;
+
+  function program1(depth0,data) {
+    
+    
+    return "\n				<li><a id=\"new-profile-nav\" href=\"#\">New Profile</a></li>\n				<li><a id=\"logout-nav\" href=\"#logout\">Logout</a></li>\n				";}
+
+  function program3(depth0,data) {
+    
+    
+    return "\n				<li><a id=\"login-nav\" href=\"#login\">Login</a></li>\n				";}
+
+    buffer += "<div id=\"nav\" class=\"navbar navbar-fixed-top\">\n	<div class=\"navbar-inner\">\n		<div class=\"container\">\n			<a class=\"brand\" href=\"#\">RPi Ferment</a>\n			<ul class=\"nav\">\n				<li><a id=\"profiles-nav\" href=\"#profiles\">Profiles</a></li>\n				";
+    foundHelper = helpers.loggedIn;
+    stack1 = foundHelper || depth0.loggedIn;
+    stack2 = helpers['if'];
+    tmp1 = self.program(1, program1, data);
+    tmp1.hash = {};
+    tmp1.fn = tmp1;
+    tmp1.inverse = self.program(3, program3, data);
+    stack1 = stack2.call(depth0, stack1, tmp1);
+    if(stack1 || stack1 === 0) { buffer += stack1; }
+    buffer += "\n			</ul>\n			<p class=\"navbar-text pull-right\" title=\"Ambient Temperature\" id=\"ambient-display\"></p>\n		</div>\n	</div>\n</div>\n";
+    return buffer;});
+});
 window.require.register("views/templates/profile", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
-    var buffer = "", stack1, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
+    var buffer = "", stack1, stack2, foundHelper, tmp1, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
+  function program1(depth0,data) {
+    
+    
+    return "\n<td><a class=\"edit\" title=\"Edit\" href=\"#\"><i class=\"icon-edit\"></i></a></td>\n<td><a class=\"delete\" title=\"Delete\" href=\"#\"><i class=\"icon-trash\"></i></a></td>\n<td><a class=\"activate\" href=\"#\">activate</a></td>\n";}
 
     buffer += "<td>";
     foundHelper = helpers.name;
     stack1 = foundHelper || depth0.name;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "name", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</td>\n<td><a class=\"edit\" title=\"Edit\" href=\"#\"><i class=\"icon-edit\"></i></a></td>\n<td><a class=\"delete\" title=\"Delete\" href=\"#\"><i class=\"icon-trash\"></i></a></td>\n<td><a class=\"activate\" href=\"#\">activate</a></td>\n<td><a class=\"details\" title=\"Details\" href=\"#profile/";
+    buffer += escapeExpression(stack1) + "</td>\n";
+    foundHelper = helpers.loggedIn;
+    stack1 = foundHelper || depth0.loggedIn;
+    stack2 = helpers['if'];
+    tmp1 = self.program(1, program1, data);
+    tmp1.hash = {};
+    tmp1.fn = tmp1;
+    tmp1.inverse = self.noop;
+    stack1 = stack2.call(depth0, stack1, tmp1);
+    if(stack1 || stack1 === 0) { buffer += stack1; }
+    buffer += "\n<td><a class=\"details\" title=\"Details\" href=\"#profile/";
     foundHelper = helpers._id;
     stack1 = foundHelper || depth0._id;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
@@ -3317,6 +3507,16 @@ window.require.register("views/templates/profileDetail", function(exports, requi
     var buffer = "", stack1, stack2, foundHelper, tmp1, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
   function program1(depth0,data) {
+    
+    
+    return "\n<button class=\"edit\" title=\"Edit Profile\"><i class=\"icon-edit\"></i> Edit Profile</button>\n";}
+
+  function program3(depth0,data) {
+    
+    
+    return "\n<button class=\"add-step\" title=\"Add Step\" class=\"btn btn-mini\"><i class=\"icon-plus\"></i> Add Step</button>\n";}
+
+  function program5(depth0,data) {
     
     var buffer = "", stack1, stack2, stack3;
     buffer += "\n		<li>";
@@ -3353,11 +3553,31 @@ window.require.register("views/templates/profileDetail", function(exports, requi
     stack1 = foundHelper || depth0.control_mode;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "control_mode", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "<br />\n	</div>\n</div>\n<br />\n<button class=\"edit\" title=\"Edit Profile\"><i class=\"icon-edit\"></i> Edit Profile</button>\n<hr />\n<h4>Steps</h4>\n<table id=\"steps\">\n</table>\n<br />\n<button class=\"add-step\" title=\"Add Step\" class=\"btn btn-mini\"><i class=\"icon-plus\"></i> Add Step</button>\n<hr />\n<h4>Override History</h4>\n<ul id=\"overrides\">\n	";
+    buffer += escapeExpression(stack1) + "<br />\n	</div>\n</div>\n<br />\n";
+    foundHelper = helpers.loggedIn;
+    stack1 = foundHelper || depth0.loggedIn;
+    stack2 = helpers['if'];
+    tmp1 = self.program(1, program1, data);
+    tmp1.hash = {};
+    tmp1.fn = tmp1;
+    tmp1.inverse = self.noop;
+    stack1 = stack2.call(depth0, stack1, tmp1);
+    if(stack1 || stack1 === 0) { buffer += stack1; }
+    buffer += "\n<hr />\n<h4>Steps</h4>\n<table id=\"steps\">\n</table>\n<br />\n";
+    foundHelper = helpers.loggedIn;
+    stack1 = foundHelper || depth0.loggedIn;
+    stack2 = helpers['if'];
+    tmp1 = self.program(3, program3, data);
+    tmp1.hash = {};
+    tmp1.fn = tmp1;
+    tmp1.inverse = self.noop;
+    stack1 = stack2.call(depth0, stack1, tmp1);
+    if(stack1 || stack1 === 0) { buffer += stack1; }
+    buffer += "\n<hr />\n<h4>Override History</h4>\n<ul id=\"overrides\">\n	";
     foundHelper = helpers.overrides;
     stack1 = foundHelper || depth0.overrides;
     stack2 = helpers.each;
-    tmp1 = self.program(1, program1, data);
+    tmp1 = self.program(5, program5, data);
     tmp1.hash = {};
     tmp1.fn = tmp1;
     tmp1.inverse = self.noop;
@@ -3436,15 +3656,19 @@ window.require.register("views/templates/sample", function(exports, require, mod
 window.require.register("views/templates/step", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
-    var buffer = "", stack1, stack2, stack3, foundHelper, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
+    var buffer = "", stack1, stack2, stack3, foundHelper, tmp1, self=this, functionType="function", helperMissing=helpers.helperMissing, undef=void 0, escapeExpression=this.escapeExpression;
 
+  function program1(depth0,data) {
+    
+    
+    return "\n<td>\n	<a class=\"edit-step\" title=\"Edit\" href=\"#\"><i class=\"icon-edit\"></i></a> <a class=\"delete-step\" title=\"Delete\" href=\"#\"><i class=\"icon-trash\"></i></a>\n</td>\n";}
 
     buffer += "<td>";
     foundHelper = helpers.order;
     stack1 = foundHelper || depth0.order;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
     else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "order", { hash: {} }); }
-    buffer += escapeExpression(stack1) + "</td>\n<td>";
+    buffer += escapeExpression(stack1) + " &dot;</td>\n<td>";
     foundHelper = helpers.name;
     stack1 = foundHelper || depth0.name;
     if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
@@ -3469,6 +3693,16 @@ window.require.register("views/templates/step", function(exports, require, modul
     if(typeof stack3 === functionType) { stack1 = stack3.call(depth0, stack2, stack1, { hash: {} }); }
     else if(stack3=== undef) { stack1 = helperMissing.call(depth0, "stepTemperature", stack2, stack1, { hash: {} }); }
     else { stack1 = stack3; }
-    buffer += escapeExpression(stack1) + "</td>\n<td>\n	<a class=\"edit-step\" title=\"Edit\" href=\"#\"><i class=\"icon-edit\"></i></a> <a class=\"delete-step\" title=\"Delete\" href=\"#\"><i class=\"icon-trash\"></i></a>\n</td>\n";
+    buffer += escapeExpression(stack1) + "</td>\n";
+    foundHelper = helpers.loggedIn;
+    stack1 = foundHelper || depth0.loggedIn;
+    stack2 = helpers['if'];
+    tmp1 = self.program(1, program1, data);
+    tmp1.hash = {};
+    tmp1.fn = tmp1;
+    tmp1.inverse = self.noop;
+    stack1 = stack2.call(depth0, stack1, tmp1);
+    if(stack1 || stack1 === 0) { buffer += stack1; }
+    buffer += "\n";
     return buffer;});
 });
