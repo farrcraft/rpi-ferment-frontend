@@ -11,4 +11,4 @@ server = http.createServer (request, response) ->
 		file.serve request, response
 	request.resume()
 
-server.listen 3020
+server.listen 3030

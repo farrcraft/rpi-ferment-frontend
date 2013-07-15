@@ -1,9 +1,24 @@
 # rpi-ferment-frontend
+
 This is the frontend application for the [rpi-ferment](https://github.com/sigsegv42/rpi-ferment) server.  It includes a lightweight server-side application using node-static to serve the static application assets. 
 
 The client-side application is built using [Brunch](http://brunch.io/) with [MarionetteJS](http://marionettejs.com/).
 
 Graphene is included for rendering graph data from the graphite server.
+
+## Usage
+
+Launch the web server by running either *./lib/frontend.js* directly or using the run script:
+
+``` bash
+  $ node ./lib/frontend.js
+
+  $ cd bin
+  $ ./run.sh
+```
+
+Alternatively, forever can be used to daemonize the application.  See the deployment section of the readme for an example that uses forever with capistrano for deployment.
+
 
 ## Features
 
@@ -102,5 +117,30 @@ Use the Ruby bundler gem to install Capper:
 ``` bash
   $ gem install bundler
   $ bundle install
+```
+
+List deploy tasks:
+
+``` bash
+  $ bundle exec cap -T
+```
+
+Dry run deploy:
+
+```bash
+  $ bundle exec cap production deploy -n
+```
+
+The very first deploy will need to have setup run first:
+
+```bash
+  $ bundle exec cap production deploy:setup
+```
+
+
+To do a normal deploy, remove the -n option to disable dry run mode:
+
+```bash
+  $ bundle exec cap production deploy
 ```
 
