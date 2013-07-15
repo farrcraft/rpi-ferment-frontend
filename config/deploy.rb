@@ -16,7 +16,7 @@ set :main_js, "lib/frontend.js"
 
 # your log folder to share between different releases
 # you can add more folders here...
-set :symlinks, {"logs" => "lib/logs"}
+set :symlinks, {"log" => "lib/logs"}
 
 desc "production stage"
 task :production do

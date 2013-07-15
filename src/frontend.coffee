@@ -3,8 +3,10 @@
 
 nodeStatic 	= require 'node-static'
 http 		= require 'http'
+path 		= require 'path'
 
-file = new nodeStatic.Server '../public'
+publicDir = path.resolve __dirname, '/../public'
+file = new nodeStatic.Server publicDir
 
 server = http.createServer (request, response) ->
 	request.addListener 'end', () ->
