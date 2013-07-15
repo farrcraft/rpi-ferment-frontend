@@ -5,7 +5,7 @@ nodeStatic 	= require 'node-static'
 http 		= require 'http'
 path 		= require 'path'
 
-publicDir = path.resolve __dirname, '/../public'
+publicDir = path.resolve __dirname + '/../public'
 file = new nodeStatic.Server publicDir
 
 server = http.createServer (request, response) ->
