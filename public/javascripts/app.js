@@ -170,7 +170,7 @@ window.require.register("application", function(exports, require, module) {
 });
 window.require.register("controllers/profile", function(exports, require, module) {
   (function() {
-    var ProfileCollection, ProfileController, ProfileModalView, ProfileModel,
+    var ProfileCollection, ProfileController, ProfileModalView, ProfileModel, config,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
@@ -180,6 +180,8 @@ window.require.register("controllers/profile", function(exports, require, module
     ProfileModel = require('models/profileModel');
 
     ProfileCollection = require('models/collections/profileCollection');
+
+    config = require('lib/config');
 
     module.exports = ProfileController = (function(_super) {
 
@@ -253,7 +255,7 @@ window.require.register("controllers/profile", function(exports, require, module
 
       ProfileController.prototype.setupSockets = function() {
         var _this = this;
-        this.socket_ = io.connect('http://graphite:6001');
+        this.socket_ = io.connect(config.socketIORoot);
         this.socket_.on('config', function(config) {
           _this.config_ = config;
           return _this.app.vent.trigger('Socket:Config', config);
@@ -305,7 +307,9 @@ window.require.register("lib/config", function(exports, require, module) {
 
     module.exports = {
       modelRoot: 'http://mine.quantumfish.com:3010',
-      oauthSecret: '023c430fe2adf2700b1cbff5bc6ee78a2aff7ff6'
+      oauthSecret: '023c430fe2adf2700b1cbff5bc6ee78a2aff7ff6',
+      socketIORoot: 'http://mine.quantumfish.com:6001',
+      graphiteRoot: 'http://mine.quantumfish.com'
     };
 
   }).call(this);
@@ -313,16 +317,18 @@ window.require.register("lib/config", function(exports, require, module) {
 });
 window.require.register("lib/graph", function(exports, require, module) {
   (function() {
-    var Graph, Graphene,
+    var Graph, Graphene, config,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
     Graphene = require('lib/graphene');
+
+    config = require('lib/config');
 
     module.exports = Graph = (function() {
 
       Graph.prototype.description_ = {};
 
-      Graph.prototype.graphiteUrl_ = 'http://graphite';
+      Graph.prototype.graphiteUrl_ = config.graphiteRoot;
 
       Graph.prototype.graphene_ = null;
 

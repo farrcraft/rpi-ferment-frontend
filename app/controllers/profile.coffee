@@ -4,6 +4,7 @@
 ProfileModalView 	= require 'views/modals/ProfileModalView'
 ProfileModel 		= require 'models/profileModel'
 ProfileCollection 	= require 'models/collections/profileCollection'
+config 	 = require 'lib/config'
 
 module.exports = class ProfileController extends Backbone.Marionette.Controller
 	socket_: null
@@ -53,7 +54,7 @@ module.exports = class ProfileController extends Backbone.Marionette.Controller
 				profile.save()
 
 	setupSockets: =>
-		@socket_ = io.connect 'http://graphite:6001'
+		@socket_ = io.connect config.socketIORoot
 		@socket_.on 'config', (config) =>
 			@config_ = config
 			@app.vent.trigger 'Socket:Config', config

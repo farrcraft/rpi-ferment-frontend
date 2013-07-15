@@ -2,11 +2,12 @@
 # Copyright(c) Joshua Farr <j.wgasa@gmail.com>
 
 Graphene = require 'lib/graphene'
+config 	 = require 'lib/config'
 
 # class for creating dashboard graphs
 module.exports = class Graph
 	description_: { }
-	graphiteUrl_: 'http://graphite'
+	graphiteUrl_: config.graphiteRoot
 	graphene_: null
 
 	constructor: ->
